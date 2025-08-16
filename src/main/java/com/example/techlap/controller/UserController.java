@@ -41,6 +41,6 @@ public class UserController {
     @ApiMessage("Delete user by id")
     public ResponseEntity<Void> deleteUser(@PathVariable long id) throws Exception {
         this.userService.delete(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

@@ -2,6 +2,7 @@ package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
+import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,22 +12,28 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
+    private static final String USER_NOT_FOUND_EXCEPTION_MESSAGE = "User not found";
 
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    private User findUserByIdOrThrow(long id) {
+        return this.userRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_EXCEPTION_MESSAGE));
+    }
+
     @Override
     public User create(User user) throws Exception {
         // Check Username
-        if (this.userRepository.existsByEmail(user.getEmail())) {
-            throw new ResourceAlreadyExistsException(user.getEmail() + " đã tồn tại");
-        }
+        if (this.userRepository.existsByEmail(user.getEmail()))
+            throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
         // Save hashPassword
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // Đoạn code xử lí việc thêm role nhưng hiện giờ thì set = null trước
         user.setRole(null);
@@ -42,11 +49,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User update(User user) throws Exception {
-        User userInDB = this.userRepository.findById(user.getId()).orElse(null);
-        // Check Username
-        if (userInDB == null) {
-            throw new ResourceAlreadyExistsException(user.getId() + " không tồn tại");
-        }
+        User userInDB = this.findUserByIdOrThrow(user.getId());
+
         userInDB.setFullName(user.getFullName());
         userInDB.setPhone(user.getPhone());
 
@@ -55,25 +59,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User fetchUserById(long id) throws Exception {
-        if (!this.userRepository.existsById(id)) {
-            throw new ResourceAlreadyExistsException("người dùng không tồn tại");
-        }
-        return this.userRepository.findById(id).orElse(null);
+        return this.findUserByIdOrThrow(id);
     }
 
     @Override
     public User fetchUserByEmail(String email) {
-        if (!this.userRepository.existsByEmail(email)) {
-            throw new ResourceAlreadyExistsException("người dùng không tồn tại");
-        }
-        return this.userRepository.findByEmail(email);
+        return this.userRepository
+                .findByEmail(email);
     }
 
     @Override
     public void delete(long id) throws Exception {
-        if (!this.userRepository.existsById(id)) {
-            throw new ResourceAlreadyExistsException("người dùng không tồn tại");
-        }
-        this.userRepository.deleteById(id);
+        User user = this.findUserByIdOrThrow(id);
+        this.userRepository.delete(user);
     }
 }
