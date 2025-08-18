@@ -1,10 +1,15 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.User;
+import com.example.techlap.domain.respond.ResPagination;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.UserService;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +42,13 @@ public class UserServiceImpl implements UserService {
 
         // Đoạn code xử lí việc thêm role nhưng hiện giờ thì set = null trước
         user.setRole(null);
-//        Role role = this.roleRepository.findById(user.getRole().getId()).orElse(null);
-//        if (role != null) {
-//            user.setRole(role);
-//        }else {
-//            user.setRole(null);
-//        }
+        // Role role =
+        // this.roleRepository.findById(user.getRole().getId()).orElse(null);
+        // if (role != null) {
+        // user.setRole(role);
+        // }else {
+        // user.setRole(null);
+        // }
 
         return userRepository.save(user);
     }
@@ -72,5 +78,22 @@ public class UserServiceImpl implements UserService {
     public void delete(long id) throws Exception {
         User user = this.findUserByIdOrThrow(id);
         this.userRepository.delete(user);
+    }
+
+    @Override
+    public ResPagination fetchAllUsersWithPagination(Specification<User> spec, Pageable pageable) throws Exception {
+        Page<User> userPage = userRepository.findAll(pageable);
+        ResPagination res = new ResPagination();
+        ResPagination.Meta meta = new ResPagination.Meta();
+
+        meta.setPage(userPage.getNumber() + 1);
+        meta.setPageSize(userPage.getSize());
+        meta.setPages(userPage.getTotalPages());
+        meta.setTotal(userPage.getTotalElements());
+
+        res.setMeta(meta);
+        res.setResult(userPage.getContent());
+
+        return res;
     }
 }

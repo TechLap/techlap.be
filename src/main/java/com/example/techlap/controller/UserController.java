@@ -2,11 +2,17 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.respond.ResPagination;
 import com.example.techlap.service.UserService;
+import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -33,7 +39,7 @@ public class UserController {
 
     @GetMapping("/users/{id}")
     @ApiMessage("Fetch user by id")
-    public ResponseEntity<User> fetchUserById(@PathVariable long id) throws Exception {
+    public ResponseEntity<User> fetchUserById(@PathVariable("id") long id) throws Exception {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchUserById(id));
     }
 
@@ -43,4 +49,15 @@ public class UserController {
         this.userService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @GetMapping("/users")
+    @ApiMessage("Fetch all users")
+    public ResponseEntity<ResPagination> fetchAllUsers(
+            @Filter
+            Specification<User> spec,
+            Pageable pageable) throws Exception {
+        ResPagination res = this.userService.fetchAllUsersWithPagination(spec, pageable);
+        return ResponseEntity.ok(res);
+    }
+
 }
