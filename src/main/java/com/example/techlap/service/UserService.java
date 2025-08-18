@@ -4,7 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.example.techlap.domain.User;
-import com.example.techlap.domain.respond.ResPagination;
+import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 
 public interface UserService {
     // Create a user
@@ -20,7 +20,7 @@ public interface UserService {
     User fetchUserByEmail(String email);
 
     // Find all user with pagination
-    ResPagination fetchAllUsersWithPagination(Specification<User> spec, Pageable pageable) throws Exception;
+    ResPaginationDTO fetchAllUsersWithPagination(Pageable pageable) throws Exception;
 
     // Delete a user by id
     void delete(long id) throws Exception;

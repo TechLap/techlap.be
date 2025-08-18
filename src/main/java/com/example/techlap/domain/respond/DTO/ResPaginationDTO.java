@@ -1,11 +1,11 @@
-package com.example.techlap.domain.respond;
+package com.example.techlap.domain.respond.DTO;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ResPagination {
+public class ResPaginationDTO {
     private Meta meta;
     private Object result;
 

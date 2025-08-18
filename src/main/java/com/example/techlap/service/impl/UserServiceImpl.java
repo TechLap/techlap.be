@@ -1,7 +1,7 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.User;
-import com.example.techlap.domain.respond.ResPagination;
+import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.UserRepository;
@@ -81,10 +81,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResPagination fetchAllUsersWithPagination(Specification<User> spec, Pageable pageable) throws Exception {
+    public ResPaginationDTO fetchAllUsersWithPagination(Pageable pageable) throws Exception {
         Page<User> userPage = userRepository.findAll(pageable);
-        ResPagination res = new ResPagination();
-        ResPagination.Meta meta = new ResPagination.Meta();
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
 
         meta.setPage(userPage.getNumber() + 1);
         meta.setPageSize(userPage.getSize());

@@ -2,13 +2,11 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
-import com.example.techlap.domain.respond.ResPagination;
+import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.UserService;
-import com.turkraft.springfilter.boot.Filter;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,11 +50,9 @@ public class UserController {
 
     @GetMapping("/users")
     @ApiMessage("Fetch all users")
-    public ResponseEntity<ResPagination> fetchAllUsers(
-            @Filter
-            Specification<User> spec,
+    public ResponseEntity<ResPaginationDTO> fetchAllUsers(
             Pageable pageable) throws Exception {
-        ResPagination res = this.userService.fetchAllUsersWithPagination(spec, pageable);
+        ResPaginationDTO res = this.userService.fetchAllUsersWithPagination(pageable);
         return ResponseEntity.ok(res);
     }
 
