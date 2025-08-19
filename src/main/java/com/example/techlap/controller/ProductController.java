@@ -1,0 +1,69 @@
+package com.example.techlap.controller;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.techlap.domain.Product;
+import com.example.techlap.domain.User;
+import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.service.ProductService;
+
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@RestController
+@RequestMapping("/api/v1/")
+public class ProductController {
+
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @PostMapping("/products")
+    @ApiMessage("Create a product")
+    public ResponseEntity<Product> createUser(@Valid @RequestBody Product product) throws Exception {
+        Product newProd = productService.create(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newProd);
+    }
+
+    @PutMapping("/products")
+    @ApiMessage("Update a product")
+    public ResponseEntity<Product> updateUser(@Valid @RequestBody Product product) throws Exception {
+        Product currentProd = productService.update(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(currentProd);
+    }
+
+    @GetMapping("/products/{id}")
+    @ApiMessage("Fetch product by id")
+    public ResponseEntity<Product> fetchProductById(@PathVariable("id") long id) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(this.productService.fetchProductById(id));
+    }
+
+    @GetMapping("/products")
+    @ApiMessage("Fetch all products")
+    public ResponseEntity<ResPaginationDTO> fetchAllProducts(
+            Pageable pageable) throws Exception {
+        ResPaginationDTO res = this.productService.fetchAllProductsWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @DeleteMapping("/products/{id}")
+    @ApiMessage("Delete product by id")
+    public ResponseEntity<Void> deleteProduct(@PathVariable("id") long id) throws Exception {
+        this.productService.delete(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+}
