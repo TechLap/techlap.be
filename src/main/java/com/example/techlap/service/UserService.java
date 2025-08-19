@@ -1,7 +1,6 @@
 package com.example.techlap.service;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
