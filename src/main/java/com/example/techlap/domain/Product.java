@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -21,7 +22,7 @@ public class Product {
     private long id;
     @NotBlank(message = "name isn't blank")
     private String name;
-    private double price;
+    private BigDecimal price;
     private double discount;
     private long stock;
     @NotBlank(message = "description isn't blank")

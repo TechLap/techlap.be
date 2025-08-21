@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -19,7 +20,7 @@ public class CartDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private long quantity;
-    private double price;
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
