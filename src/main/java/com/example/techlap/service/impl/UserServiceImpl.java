@@ -39,16 +39,6 @@ public class UserServiceImpl implements UserService {
         // Save hashPassword
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Đoạn code xử lí việc thêm role nhưng hiện giờ thì set = null trước
-        user.setRole(null);
-        // Role role =
-        // this.roleRepository.findById(user.getRole().getId()).orElse(null);
-        // if (role != null) {
-        // user.setRole(role);
-        // }else {
-        // user.setRole(null);
-        // }
-
         return userRepository.save(user);
     }
 
