@@ -3,6 +3,7 @@ package com.example.techlap.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +32,7 @@ public class Customer {
     @NotBlank(message = "fullName isn't blank")
     private String fullName;
 
+    @Pattern(regexp = "^(0[0-9]{9})$", message = "Invalid phone number")
     private String phone;
     private Long totalOrder;
     private Long totalSpending;

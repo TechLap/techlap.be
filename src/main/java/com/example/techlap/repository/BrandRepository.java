@@ -4,8 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.techlap.domain.Brand;
 
-
 public interface BrandRepository extends JpaRepository<Brand, Long> {
 
     Brand findByName(String name);
+
+    boolean existsByName(String name);
 }

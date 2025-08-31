@@ -30,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product create(Product product) throws Exception {
         // Check if product already exists
-        if (this.productRepository.existsById(product.getId())) {
+        if (this.productRepository.existsByName(product.getName())) {
             throw new ResourceNotFoundException(PRODUCT_EXISTS_EXCEPTION_MESSAGE);
         }
         return productRepository.save(product);

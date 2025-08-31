@@ -31,7 +31,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public Brand create(Brand brand) throws Exception {
         // Check if brand already exists
-        if (this.brandRepository.existsById(brand.getId())) {
+        if (this.brandRepository.existsByName(brand.getName())) {
             throw new ResourceNotFoundException(BRAND_EXISTS_EXCEPTION_MESSAGE);
         }
         return brandRepository.save(brand);

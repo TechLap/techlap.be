@@ -1,7 +1,11 @@
 package com.example.techlap.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +26,9 @@ public class Product {
     private long id;
     @NotBlank(message = "name isn't blank")
     private String name;
+    @DecimalMin(value = "0.0", inclusive = true, message = "Giá phải lớn hơn hoặc bằng 0")
+    @DecimalMax(value = "1000000000.0", inclusive = true, message = "Giá không được vượt quá 1 tỷ")
+    @Digits(integer = 10, fraction = 2, message = "Giá không hợp lệ, tối đa 10 số nguyên và 2 số thập phân")
     private BigDecimal price;
     private double discount;
     private long stock;
