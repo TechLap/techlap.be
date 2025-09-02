@@ -27,8 +27,12 @@ public class User {
     @NotBlank(message = "password isn't blank")
     private String password;
 
-    @NotBlank(message = "fullName isn't blank")
+    @NotBlank(message = "Name isn't blank")
     private String fullName;
+
+    @NotBlank(message = "Address isn't blank")
+    private String address;
+
     @Pattern(regexp = "^(0[0-9]{9})$", message = "Invalid phone number")
     private String phone;
 
