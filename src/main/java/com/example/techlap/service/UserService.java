@@ -24,4 +24,7 @@ public interface UserService {
     // Delete a user by id
     void delete(long id) throws Exception;
 
+    void updateUserToken(String token, String email) throws Exception;
+
+    User getUserByRefreshTokenAndEmail(String token, String email) throws Exception;
 }

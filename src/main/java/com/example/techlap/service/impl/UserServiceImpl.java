@@ -85,4 +85,19 @@ public class UserServiceImpl implements UserService {
 
         return res;
     }
+
+    @Override
+    public void updateUserToken(String token, String email) throws Exception {
+        User currentUser = this.fetchUserByEmail(email);
+        if (currentUser != null) {
+            currentUser.setRefreshToken(token);
+            this.userRepository.save(currentUser);
+        }
+    }
+
+    @Override
+    public User getUserByRefreshTokenAndEmail(String token, String email) throws Exception {
+        return this.userRepository.findByRefreshTokenAndEmail(token, email);
+
+    }
 }
