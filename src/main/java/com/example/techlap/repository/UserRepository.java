@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmail(@NotBlank(message = "email isn't blank") String email);
 
+    User findByRefreshTokenAndEmail(String refreshToken, String email);
 }
