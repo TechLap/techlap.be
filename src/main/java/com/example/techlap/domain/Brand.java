@@ -22,6 +22,6 @@ public class Brand {
     @NotBlank(message = "name isn't blank")
     private String name;
 
-    @OneToMany(mappedBy = "brand")
+    @OneToMany(mappedBy = "brand" ,cascade = CascadeType.REMOVE)
     List<Product> products;
 }

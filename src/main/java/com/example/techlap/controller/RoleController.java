@@ -4,6 +4,7 @@ import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.RoleService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,13 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/v1")
 public class RoleController {
     private final RoleService roleService;
 
-    public RoleController(RoleService roleService) {
-        this.roleService = roleService;
-    }
 
     @PostMapping("/roles")
     @ApiMessage("Create a role")

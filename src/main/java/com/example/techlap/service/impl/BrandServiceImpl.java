@@ -11,16 +11,16 @@ import com.example.techlap.repository.BrandRepository;
 import com.example.techlap.service.BrandService;
 import com.example.techlap.service.ProductService;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class BrandServiceImpl implements BrandService {
 
     private final BrandRepository brandRepository;
     private static final String BRAND_EXISTS_EXCEPTION_MESSAGE = "Brand already exists";
     private static final String BRAND_NOT_FOUND_EXCEPTION_MESSAGE = "Brand not found";
 
-    public BrandServiceImpl(BrandRepository brandRepository) {
-        this.brandRepository = brandRepository;
-    }
 
     private Brand findProductByIdOrThrow(long id) {
         return this.brandRepository

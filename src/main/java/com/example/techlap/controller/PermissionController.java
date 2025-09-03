@@ -5,6 +5,7 @@ import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.PermissionService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -13,13 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/v1")
 public class PermissionController {
     private final PermissionService permissionService;
 
-    public PermissionController(PermissionService permissionService) {
-        this.permissionService = permissionService;
-    }
 
     @PostMapping("/permissions")
     @ApiMessage("Create a permission")

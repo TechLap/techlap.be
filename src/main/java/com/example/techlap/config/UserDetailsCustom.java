@@ -11,13 +11,12 @@ import org.springframework.stereotype.Component;
 import com.example.techlap.domain.User;
 import com.example.techlap.service.UserService;
 
+import lombok.AllArgsConstructor;
+
 @Component("userDetailsService")
+@AllArgsConstructor
 public class UserDetailsCustom implements UserDetailsService {
     private final UserService userService;
-
-    public UserDetailsCustom(UserService userService) {
-        this.userService = userService;
-    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

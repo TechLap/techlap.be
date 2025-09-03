@@ -10,6 +10,8 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+import com.example.techlap.util.SecurityUtil;
+
 @Entity
 @Getter
 @Setter
@@ -25,6 +27,7 @@ public class User {
     private String email;
 
     @NotBlank(message = "password isn't blank")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$", message = "Mật khẩu phải tối thiểu 8 ký tự, gồm ít nhất 1 chữ thường, 1 chữ hoa và 1 chữ số")
     private String password;
 
     @NotBlank(message = "fullName isn't blank")
@@ -43,4 +46,20 @@ public class User {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+
+    @PrePersist
+    public void handleBeforeCreate() {
+        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.updatedAt = Instant.now();
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : " ";
+    }
 }

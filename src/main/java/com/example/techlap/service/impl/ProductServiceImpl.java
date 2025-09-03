@@ -10,16 +10,16 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.ProductService;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private static final String PRODUCT_EXISTS_EXCEPTION_MESSAGE = "Product already exists";
     private static final String PRODUCT_NOT_FOUND_EXCEPTION_MESSAGE = "Product not found";
 
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     private Product findProductByIdOrThrow(long id) {
         return this.productRepository

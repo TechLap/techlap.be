@@ -7,22 +7,20 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.UserService;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String USER_NOT_FOUND_EXCEPTION_MESSAGE = "User not found";
-
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     private User findUserByIdOrThrow(long id) {
         return this.userRepository

@@ -14,6 +14,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.example.techlap.util.SecurityUtil;
+
 @Entity
 @Getter
 @Setter
@@ -49,4 +51,20 @@ public class Product {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+
+    @PrePersist
+    public void handleBeforeCreate() {
+        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+        this.createdAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.updatedAt = Instant.now();
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : " ";
+    }
 }
