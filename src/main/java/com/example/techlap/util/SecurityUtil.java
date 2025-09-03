@@ -3,12 +3,13 @@ package com.example.techlap.util;
 import com.example.techlap.constant.JwtConstants;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 import com.nimbusds.jose.util.Base64;
-import org.springframework.beans.factory.annotation.Value;
+
+import lombok.AllArgsConstructor;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +22,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class SecurityUtil {
 
     private final JwtEncoder jwtEncoder;
     private final JwtConstants jwtConstants;
 
-    public SecurityUtil(JwtEncoder jwtEncoder, JwtConstants jwtConstants) {
-        this.jwtEncoder = jwtEncoder;
-        this.jwtConstants = jwtConstants;
-    }
 
     // tạo token khi đăng nhập
     public String createAccessToken(String email, ResLoginDTO dto) {

@@ -7,22 +7,21 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.service.CustomerService;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE = "Customer not found";
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
-        this.customerRepository = customerRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     private Customer findCustomerByIdOrThrow(long id) {
         return this.customerRepository

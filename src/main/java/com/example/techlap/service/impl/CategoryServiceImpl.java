@@ -7,19 +7,18 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.CategoryRepository;
 import com.example.techlap.service.CategoryService;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private static final String NAME_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE = "Category not found";
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
 
     private Category findCategoryByIdOrThrow(long id) {
         return this.categoryRepository

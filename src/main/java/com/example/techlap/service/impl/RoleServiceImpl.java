@@ -7,19 +7,19 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.RoleService;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String ROLE_NOT_FOUND_EXCEPTION_MESSAGE = "Role not found";
 
-    public RoleServiceImpl(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
 
     private Role findRoleByIdOrThrow(long id) {
         return this.roleRepository

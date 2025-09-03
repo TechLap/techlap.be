@@ -14,20 +14,21 @@ import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.BrandService;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/v1/")
 public class BrandController {
 
     private final BrandService brandService;
 
-    public BrandController(BrandService brandService) {
-        this.brandService = brandService;
-    }
+
 
     @PostMapping("/brands")
     @ApiMessage("Create a brand")

@@ -7,19 +7,18 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.PermissionRepository;
 import com.example.techlap.service.PermissionService;
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class PermissionServiceImpl implements PermissionService {
     private final PermissionRepository permissionRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String PERMISSION_NOT_FOUND_EXCEPTION_MESSAGE = "Permission not found";
-
-    public PermissionServiceImpl(PermissionRepository permissionRepository) {
-        this.permissionRepository = permissionRepository;
-    }
 
     private Permission findPermissionByIdOrThrow(long id) {
         return this.permissionRepository
