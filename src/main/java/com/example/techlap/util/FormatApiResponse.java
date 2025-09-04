@@ -22,8 +22,8 @@ public class FormatApiResponse implements ResponseBodyAdvice<Object> {
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
-                                  Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
-                                  ServerHttpResponse response) {
+            Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
+            ServerHttpResponse response) {
         HttpServletResponse httpResponse = ((ServletServerHttpResponse) response).getServletResponse();
         int status = httpResponse.getStatus();
 
@@ -32,11 +32,11 @@ public class FormatApiResponse implements ResponseBodyAdvice<Object> {
         }
 
         String path = request.getURI().getPath();
-        if(path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")){
+        if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/api/v1/files")) {
             return body;
         }
 
-        if(body == null){
+        if (body == null) {
             ApiResponse<Object> res = new ApiResponse<>();
             res.setStatusCode(status);
             ApiMessage message = returnType.getMethodAnnotation(ApiMessage.class);
