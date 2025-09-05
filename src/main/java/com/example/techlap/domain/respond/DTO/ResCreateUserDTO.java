@@ -10,17 +10,18 @@ import java.time.Instant;
 @Getter
 @Setter
 public class ResCreateUserDTO {
+
     private long id;
-    private String name;
     private String email;
+    private String fullName;
     private String phone;
     private String address;
     private Instant createdAt;
-    private roleUser role;
+    private RoleUser role;
 
     @Setter
     @Getter
-    public static class roleUser {
+    public static class RoleUser {
         private long id;
         private String name;
     }

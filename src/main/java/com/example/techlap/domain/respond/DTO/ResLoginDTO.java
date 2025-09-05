@@ -4,6 +4,7 @@ import com.example.techlap.domain.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,7 +27,7 @@ public class ResLoginDTO {
     public static class UserLogin {
         private long id;
         private String email;
-        private String name;
+        private String fullName;
         private Role role;
     }
 
@@ -45,6 +46,6 @@ public class ResLoginDTO {
     public static class UserInsideToken {
         private long id;
         private String email;
-        private String name;
+        private String fullName;
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Permission;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 
 public interface PermissionService {
     // Create a permission
@@ -23,5 +24,7 @@ public interface PermissionService {
 
     // Delete a permission by id
     void delete(long id) throws Exception;
+
+    ResPermissionDTO convertToResPermissionDTO(Permission permission) throws Exception;
 
 }

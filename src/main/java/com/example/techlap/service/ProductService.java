@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Product;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResProductDTO;
 
 public interface ProductService {
 
@@ -24,5 +25,7 @@ public interface ProductService {
 
     // Delete a product by id
     void delete(long id) throws Exception;
+
+    ResProductDTO convertToResProductDTO(Product product) throws Exception;
 
 }

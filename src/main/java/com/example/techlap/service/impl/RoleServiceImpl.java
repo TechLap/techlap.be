@@ -1,14 +1,21 @@
 package com.example.techlap.service.impl;
 
+import com.example.techlap.domain.Permission;
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.repository.PermissionRepository;
 import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.RoleService;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,9 +24,10 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
+    private final ModelMapper modelMapper;
+    private final PermissionRepository permissionRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String ROLE_NOT_FOUND_EXCEPTION_MESSAGE = "Role not found";
-
 
     private Role findRoleByIdOrThrow(long id) {
         return this.roleRepository
@@ -33,6 +41,13 @@ public class RoleServiceImpl implements RoleService {
         if (this.roleRepository.existsByName(role.getName()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
+        // set permission
+        if (role.getPermissions() != null) {
+            List<Long> permissionIds = role.getPermissions().stream().map(Permission::getId).toList();
+            List<Permission> permissions = this.permissionRepository.findByIdIn(permissionIds);
+            role.setPermissions(permissions);
+        }
+
         return roleRepository.save(role);
     }
 
@@ -42,6 +57,12 @@ public class RoleServiceImpl implements RoleService {
 
         roleInDB.setName(role.getName());
         roleInDB.setDescription(role.getDescription());
+        // set permission
+        if (role.getPermissions() != null) {
+            List<Long> permissionIds = role.getPermissions().stream().map(Permission::getId).toList();
+            List<Permission> permissions = this.permissionRepository.findByIdIn(permissionIds);
+            roleInDB.setPermissions(permissions);
+        }
 
         return this.roleRepository.save(roleInDB);
     }
@@ -77,6 +98,17 @@ public class RoleServiceImpl implements RoleService {
         res.setMeta(meta);
         res.setResult(rolePage.getContent());
 
+        List<ResRoleDTO> listRole = rolePage.getContent()
+                .stream().map(item -> this.convertToResRoleDTO(item))
+                .collect(Collectors.toList());
+
+        res.setResult(listRole);
+
         return res;
+    }
+
+    @Override
+    public ResRoleDTO convertToResRoleDTO(Role role) {
+        return modelMapper.map(role, ResRoleDTO.class);
     }
 }

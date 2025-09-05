@@ -28,13 +28,12 @@ public class SecurityUtil {
     private final JwtEncoder jwtEncoder;
     private final JwtConstants jwtConstants;
 
-
     // tạo token khi đăng nhập
     public String createAccessToken(String email, ResLoginDTO dto) {
         ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
         userToken.setId(dto.getUser().getId());
         userToken.setEmail(dto.getUser().getEmail());
-        userToken.setName(dto.getUser().getName());
+        userToken.setFullName(dto.getUser().getFullName());
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.jwtConstants.getAccessTokenExpiration(), ChronoUnit.SECONDS);
@@ -62,7 +61,7 @@ public class SecurityUtil {
         ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
         userToken.setId(dto.getUser().getId());
         userToken.setEmail(dto.getUser().getEmail());
-        userToken.setName(dto.getUser().getName());
+        userToken.setFullName(dto.getUser().getFullName());
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.jwtConstants.getRefreshTokenExpiration(), ChronoUnit.SECONDS);

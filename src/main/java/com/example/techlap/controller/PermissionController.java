@@ -3,6 +3,7 @@ package com.example.techlap.controller;
 import com.example.techlap.domain.Permission;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 import com.example.techlap.service.PermissionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -22,22 +23,23 @@ public class PermissionController {
 
     @PostMapping("/permissions")
     @ApiMessage("Create a permission")
-    public ResponseEntity<Permission> createPermission(@Valid @RequestBody Permission permission) throws Exception {
+    public ResponseEntity<ResPermissionDTO> createPermission(@Valid @RequestBody Permission permission) throws Exception {
         Permission newPermission = permissionService.create(permission);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newPermission);
+        return ResponseEntity.status(HttpStatus.CREATED).body(permissionService.convertToResPermissionDTO(newPermission));
     }
 
     @PutMapping("/permissions")
     @ApiMessage("Update a permission")
-    public ResponseEntity<Permission> updatePermission(@Valid @RequestBody Permission permission) throws Exception {
+    public ResponseEntity<ResPermissionDTO> updatePermission(@Valid @RequestBody Permission permission) throws Exception {
         Permission currentPermission = permissionService.update(permission);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentPermission);
+        return ResponseEntity.status(HttpStatus.CREATED).body(permissionService.convertToResPermissionDTO(currentPermission));
     }
 
     @GetMapping("/permissions/{id}")
     @ApiMessage("Fetch permission by id")
-    public ResponseEntity<Permission> fetchPermissionById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.permissionService.fetchPermissionById(id));
+    public ResponseEntity<ResPermissionDTO> fetchPermissionById(@PathVariable("id") long id) throws Exception {
+        Permission permission = this.permissionService.fetchPermissionById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.permissionService.convertToResPermissionDTO(permission));
     }
 
     @DeleteMapping("/permissions/{id}")

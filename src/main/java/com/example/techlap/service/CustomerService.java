@@ -3,6 +3,8 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 
 public interface CustomerService {
@@ -10,7 +12,7 @@ public interface CustomerService {
     Customer create(Customer customer) throws Exception;
 
     // Update a customer
-    Customer update(Customer customer) throws Exception;
+    Customer update(ReqUpdateCustomerDTO reqCustomer) throws Exception;
 
     // Find a customer by id
     Customer fetchCustomerById(long id) throws Exception;
@@ -23,5 +25,8 @@ public interface CustomerService {
 
     // Delete a customer by id
     void delete(long id) throws Exception;
+
+    // Convert entity to DTO
+    ResCustomerDTO convertToResCustomerDTO(Customer customer);
 
 }

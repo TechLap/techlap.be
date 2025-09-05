@@ -1,6 +1,7 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Category;
+import com.example.techlap.domain.respond.DTO.ResCategoryDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
@@ -9,6 +10,9 @@ import com.example.techlap.service.CategoryService;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ModelMapper modelMapper;
     private static final String NAME_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE = "Category not found";
 
@@ -24,6 +29,11 @@ public class CategoryServiceImpl implements CategoryService {
         return this.categoryRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND_EXCEPTION_MESSAGE));
+    }
+
+    @Override
+    public ResCategoryDTO convertToResCategoryDTO(Category category) {
+        return modelMapper.map(category, ResCategoryDTO.class);
     }
 
     @Override
@@ -62,7 +72,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public ResPaginationDTO fetchAllCategorysWithPagination(Pageable pageable) throws Exception {
+    public ResPaginationDTO fetchAllCategoriesWithPagination(Pageable pageable) throws Exception {
         Page<Category> userPage = categoryRepository.findAll(pageable);
         ResPaginationDTO res = new ResPaginationDTO();
         ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
@@ -75,6 +85,11 @@ public class CategoryServiceImpl implements CategoryService {
         res.setMeta(meta);
         res.setResult(userPage.getContent());
 
+        List<ResCategoryDTO> categoryDTOs = userPage.getContent()
+                .stream()
+                .map(this::convertToResCategoryDTO)
+                .toList();
+        res.setResult(categoryDTOs);
         return res;
     }
 }

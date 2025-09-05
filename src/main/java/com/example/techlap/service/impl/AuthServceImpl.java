@@ -1,10 +1,5 @@
 package com.example.techlap.service.impl;
 
-import java.net.http.HttpHeaders;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -13,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import com.example.techlap.constant.JwtConstants;
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.request.ReqLoginDTO;
@@ -21,10 +15,9 @@ import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.repository.CustomerRepository;
-import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.AuthService;
+import com.example.techlap.service.CustomerService;
 import com.example.techlap.service.UserService;
-import com.example.techlap.util.FormatApiResponse;
 import com.example.techlap.util.SecurityUtil;
 
 import lombok.AllArgsConstructor;
@@ -37,11 +30,13 @@ public class AuthServceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final SecurityUtil securityUtil;
     private final UserService userService;
+    private final CustomerService customerService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
 
+    // Internal Login
     @Override
-    public ResLoginDTO login(ReqLoginDTO loginDTO) throws Exception {
+    public ResLoginDTO internalLogin(ReqLoginDTO loginDTO) throws Exception {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDTO.getUsername(), loginDTO.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
@@ -57,6 +52,42 @@ public class AuthServceImpl implements AuthService {
                     inDBUser.getEmail(),
                     inDBUser.getFullName(),
                     inDBUser.getRole());
+            res.setUser(userLogin);
+        }
+        // create accessToken
+        String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
+        res.setAccessToken(access_token);
+
+        // create refreshToken
+        String refresh_token = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
+        res.setRefreshToken(refresh_token);
+        // update user
+        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+
+        // update user
+        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+
+        return res;
+    }
+
+    // External Login
+    @Override
+    public ResLoginDTO externalLogin(ReqLoginDTO loginDTO) throws Exception {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                loginDTO.getUsername(), loginDTO.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        ResLoginDTO res = new ResLoginDTO();
+
+        Customer inDBCustomer = this.customerService.fetchCustomerByEmail(loginDTO.getUsername());
+        if (inDBCustomer != null) {
+            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                    inDBCustomer.getId(),
+                    inDBCustomer.getEmail(),
+                    inDBCustomer.getFullName(),
+                    inDBCustomer.getRole());
             res.setUser(userLogin);
         }
         // create accessToken
@@ -140,7 +171,7 @@ public class AuthServceImpl implements AuthService {
         if (currentUserDB != null) {
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
-            userLogin.setName(currentUserDB.getFullName());
+            userLogin.setFullName(currentUserDB.getFullName());
             userLogin.setRole(currentUserDB.getRole());
 
             userGetAccount.setUser(userLogin);

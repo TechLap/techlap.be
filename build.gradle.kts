@@ -42,6 +42,7 @@ dependencies {
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("com.turkraft.springfilter:jpa:3.1.7")
+	implementation("org.modelmapper:modelmapper:3.1.1")
 
 }
 

@@ -1,7 +1,9 @@
 package com.example.techlap.controller;
+
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 import com.example.techlap.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -18,25 +20,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class RoleController {
     private final RoleService roleService;
 
-
     @PostMapping("/roles")
     @ApiMessage("Create a role")
-    public ResponseEntity<Role> createRole(@Valid @RequestBody Role role) throws Exception {
+    public ResponseEntity<ResRoleDTO> createRole(@Valid @RequestBody Role role) throws Exception {
         Role newRole = roleService.create(role);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newRole);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.convertToResRoleDTO(newRole));
     }
 
     @PutMapping("/roles")
     @ApiMessage("Update a role")
-    public ResponseEntity<Role> updateRole(@Valid @RequestBody Role role) throws Exception {
+    public ResponseEntity<ResRoleDTO> updateRole(@Valid @RequestBody Role role) throws Exception {
         Role currentRole = roleService.update(role);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentRole);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.convertToResRoleDTO(currentRole));
     }
 
     @GetMapping("/roles/{id}")
     @ApiMessage("Fetch role by id")
-    public ResponseEntity<Role> fetchRoleById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.roleService.fetchRoleById(id));
+    public ResponseEntity<ResRoleDTO> fetchRoleById(@PathVariable("id") long id) throws Exception {
+        Role role = this.roleService.fetchRoleById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.roleService.convertToResRoleDTO(role));
     }
 
     @DeleteMapping("/roles/{id}")

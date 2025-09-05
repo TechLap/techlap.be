@@ -1,6 +1,8 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
@@ -9,6 +11,9 @@ import com.example.techlap.service.CustomerService;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,14 +24,19 @@ import org.springframework.stereotype.Service;
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE = "Customer not found";
-
 
     private Customer findCustomerByIdOrThrow(long id) {
         return this.customerRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE));
+    }
+
+    @Override
+    public ResCustomerDTO convertToResCustomerDTO(Customer customer) {
+        return modelMapper.map(customer, ResCustomerDTO.class);
     }
 
     @Override
@@ -42,12 +52,12 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer update(Customer customer) throws Exception {
-        Customer customerInDB = this.findCustomerByIdOrThrow(customer.getId());
-
-        customerInDB.setFullName(customer.getFullName());
-        customerInDB.setPhone(customer.getPhone());
-
+    public Customer update(ReqUpdateCustomerDTO reqCustomer) throws Exception {
+        Customer customerInDB = this.findCustomerByIdOrThrow(reqCustomer.getId());
+        
+        customerInDB.setFullName(reqCustomer.getFullName());
+        customerInDB.setPhone(reqCustomer.getPhone());
+        customerInDB.setAddress(reqCustomer.getAddress());
         return this.customerRepository.save(customerInDB);
     }
 
@@ -81,6 +91,13 @@ public class CustomerServiceImpl implements CustomerService {
 
         res.setMeta(meta);
         res.setResult(customerPage.getContent());
+
+        List<ResCustomerDTO> customerDTOs = customerPage.getContent()
+                .stream()
+                .map(this::convertToResCustomerDTO)
+                .toList();
+
+        res.setResult(customerDTOs);
 
         return res;
     }

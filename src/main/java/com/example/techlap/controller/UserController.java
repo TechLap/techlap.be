@@ -2,7 +2,11 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.request.ReqUpdateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResUserDTO;
 import com.example.techlap.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -21,22 +25,23 @@ public class UserController {
 
     @PostMapping("/users")
     @ApiMessage("Create a user")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) throws Exception {
+    public ResponseEntity<ResCreateUserDTO> createUser(@Valid @RequestBody User user) throws Exception {
         User newUser = userService.create(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(newUser));
     }
 
     @PutMapping("/users")
     @ApiMessage("Update a user")
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) throws Exception {
-        User currentUser = userService.update(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentUser);
+    public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody ReqUpdateUserDTO reqUser) throws Exception {
+        User currentUser = userService.update(reqUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResUpdateUserDTO(currentUser));
     }
 
     @GetMapping("/users/{id}")
     @ApiMessage("Fetch user by id")
-    public ResponseEntity<User> fetchUserById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchUserById(id));
+    public ResponseEntity<ResUserDTO> fetchUserById(@PathVariable("id") long id) throws Exception {
+        User user = this.userService.fetchUserById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(user));
     }
 
     @DeleteMapping("/users/{id}")
