@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Category;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.respond.DTO.ResCategoryDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CategoryService;
 import jakarta.validation.Valid;
@@ -21,22 +22,23 @@ public class CategoryController {
 
     @PostMapping("/categories")
     @ApiMessage("Create a category")
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) throws Exception {
+    public ResponseEntity<ResCategoryDTO> createCategory(@Valid @RequestBody Category category) throws Exception {
         Category newCategory = categoryService.create(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCategory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.categoryService.convertToResCategoryDTO(newCategory));
     }
 
     @PutMapping("/categories")
     @ApiMessage("Update a category")
-    public ResponseEntity<Category> updateCategory(@Valid @RequestBody Category category) throws Exception {
+    public ResponseEntity<ResCategoryDTO> updateCategory(@Valid @RequestBody Category category) throws Exception {
         Category currentCategory = categoryService.update(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentCategory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.categoryService.convertToResCategoryDTO(currentCategory));
     }
 
     @GetMapping("/categories/{id}")
     @ApiMessage("Fetch category by id")
-    public ResponseEntity<Category> fetchCategoryById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.categoryService.fetchCategoryById(id));
+    public ResponseEntity<ResCategoryDTO> fetchCategoryById(@PathVariable("id") long id) throws Exception {
+            Category category = this.categoryService.fetchCategoryById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(this.categoryService.convertToResCategoryDTO(category));
     }
 
     @DeleteMapping("/categories/{id}")
@@ -48,9 +50,9 @@ public class CategoryController {
 
     @GetMapping("/categories")
     @ApiMessage("Fetch all categories")
-    public ResponseEntity<ResPaginationDTO> fetchAllCategorys(
+    public ResponseEntity<ResPaginationDTO> fetchAllCategories(
             Pageable pageable) throws Exception {
-        ResPaginationDTO res = this.categoryService.fetchAllCategorysWithPagination(pageable);
+        ResPaginationDTO res = this.categoryService.fetchAllCategoriesWithPagination(pageable);
         return ResponseEntity.ok(res);
     }
 

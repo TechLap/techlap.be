@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 
 public interface RoleService {
     // Create a role
@@ -23,5 +24,7 @@ public interface RoleService {
 
     // Delete a role by id
     void delete(long id) throws Exception;
+
+    ResRoleDTO convertToResRoleDTO(Role role) throws Exception;
 
 }

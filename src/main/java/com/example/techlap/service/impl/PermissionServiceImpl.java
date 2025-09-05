@@ -1,14 +1,21 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Permission;
+import com.example.techlap.domain.Role;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.PermissionRepository;
+import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.PermissionService;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +24,8 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class PermissionServiceImpl implements PermissionService {
     private final PermissionRepository permissionRepository;
+    private final ModelMapper modelMapper;
+    private final RoleRepository roleRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Name already exists";
     private static final String PERMISSION_NOT_FOUND_EXCEPTION_MESSAGE = "Permission not found";
 
@@ -24,6 +33,11 @@ public class PermissionServiceImpl implements PermissionService {
         return this.permissionRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(PERMISSION_NOT_FOUND_EXCEPTION_MESSAGE));
+    }
+
+    @Override
+    public ResPermissionDTO convertToResPermissionDTO(Permission permission) {
+        return modelMapper.map(permission, ResPermissionDTO.class);
     }
 
     @Override
@@ -42,6 +56,11 @@ public class PermissionServiceImpl implements PermissionService {
         permissionInDB.setName(permission.getName());
         permissionInDB.setApiPath(permission.getApiPath());
         permissionInDB.setMethod(permission.getMethod());
+        if (permission.getRoles() != null) {
+            List<Long> roleIds = permission.getRoles().stream().map(Role::getId).toList();
+            List<Role> roles = this.roleRepository.findByIdIn(roleIds);
+            permissionInDB.setRoles(roles);
+        }
 
         return this.permissionRepository.save(permissionInDB);
     }
@@ -77,6 +96,12 @@ public class PermissionServiceImpl implements PermissionService {
         res.setMeta(meta);
         res.setResult(permissionPage.getContent());
 
+        List<ResPermissionDTO> listPermissions = permissionPage.getContent()
+                .stream().map(item -> this.convertToResPermissionDTO(item))
+                .collect(Collectors.toList());
+        res.setResult(listPermissions);
+
         return res;
     }
+
 }

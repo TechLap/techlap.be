@@ -6,7 +6,9 @@ import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 
 public interface AuthService {
 
-    ResLoginDTO login(ReqLoginDTO loginDTO) throws Exception;
+    ResLoginDTO internalLogin(ReqLoginDTO loginDTO) throws Exception;
+
+    ResLoginDTO externalLogin(ReqLoginDTO loginDTO) throws Exception;
 
     Customer register(Customer customer) throws Exception;
 

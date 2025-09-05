@@ -29,7 +29,7 @@ public class Role {
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.REMOVE)
     @JsonIgnore
-    List<User> users;
+    private List<User> users;
 
     @ManyToMany
     @JsonIgnoreProperties(value = { "roles" })

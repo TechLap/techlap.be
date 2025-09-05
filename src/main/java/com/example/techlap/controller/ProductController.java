@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.techlap.domain.Product;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResProductDTO;
 import com.example.techlap.service.ProductService;
 
 import jakarta.validation.Valid;
@@ -28,25 +29,25 @@ public class ProductController {
 
     private final ProductService productService;
 
-
     @PostMapping("/products")
     @ApiMessage("Create a product")
-    public ResponseEntity<Product> createUser(@Valid @RequestBody Product product) throws Exception {
+    public ResponseEntity<ResProductDTO> createUser(@Valid @RequestBody Product product) throws Exception {
         Product newProd = productService.create(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newProd);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.productService.convertToResProductDTO(newProd));
     }
 
     @PutMapping("/products")
     @ApiMessage("Update a product")
-    public ResponseEntity<Product> updateUser(@Valid @RequestBody Product product) throws Exception {
+    public ResponseEntity<ResProductDTO> updateUser(@Valid @RequestBody Product product) throws Exception {
         Product currentProd = productService.update(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentProd);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.productService.convertToResProductDTO(currentProd));
     }
 
     @GetMapping("/products/{id}")
     @ApiMessage("Fetch product by id")
-    public ResponseEntity<Product> fetchProductById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.productService.fetchProductById(id));
+    public ResponseEntity<ResProductDTO> fetchProductById(@PathVariable("id") long id) throws Exception {
+        Product prod = this.productService.fetchProductById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.productService.convertToResProductDTO(prod));
     }
 
     @GetMapping("/products")

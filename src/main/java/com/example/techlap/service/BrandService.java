@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Brand;
+import com.example.techlap.domain.respond.DTO.ResBrandDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 
 public interface BrandService {
@@ -14,15 +15,17 @@ public interface BrandService {
     Brand update(Brand brand) throws Exception;
 
     // Find a brand by id
-    Brand fetchProductById(long id) throws Exception;
+    Brand fetchBrandById(long id) throws Exception;
 
     // Find a brand by name
-    Brand fetchProductByName(String name);
+    Brand fetchBrandByName(String name);
 
     // Find all brand with pagination
-    ResPaginationDTO fetchAllProductsWithPagination(Pageable pageable) throws Exception;
+    ResPaginationDTO fetchAllBrandsWithPagination(Pageable pageable) throws Exception;
 
     // Delete a brand by id
     void delete(long id) throws Exception;
+
+    ResBrandDTO convertToResBrandDTO(Brand brand);
 
 }

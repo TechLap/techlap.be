@@ -2,6 +2,8 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CustomerService;
 import jakarta.validation.Valid;
@@ -19,25 +21,27 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class CustomerController {
     private final CustomerService customerService;
 
-
     @PostMapping("/customers")
     @ApiMessage("Create a customer")
-    public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer customer) throws Exception {
+    public ResponseEntity<ResCustomerDTO> createCustomer(@Valid @RequestBody Customer customer) throws Exception {
         Customer newCustomer = customerService.create(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCustomer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.convertToResCustomerDTO(newCustomer));
     }
 
     @PutMapping("/customers")
     @ApiMessage("Update a customer")
-    public ResponseEntity<Customer> updateCustomer(@Valid @RequestBody Customer customer) throws Exception {
-        Customer currentCustomer = customerService.update(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(currentCustomer);
+    public ResponseEntity<ResCustomerDTO> updateCustomer(@Valid @RequestBody ReqUpdateCustomerDTO reqCustomer)
+            throws Exception {
+        Customer currentCustomer = customerService.update(reqCustomer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.convertToResCustomerDTO(currentCustomer));
     }
 
     @GetMapping("/customers/{id}")
     @ApiMessage("Fetch customer by id")
-    public ResponseEntity<Customer> fetchCustomerById(@PathVariable("id") long id) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(this.customerService.fetchCustomerById(id));
+    public ResponseEntity<ResCustomerDTO> fetchCustomerById(@PathVariable("id") long id) throws Exception {
+        ResCustomerDTO customerDTO = this.customerService
+                .convertToResCustomerDTO(this.customerService.fetchCustomerById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(customerDTO);
     }
 
     @DeleteMapping("/customers/{id}")

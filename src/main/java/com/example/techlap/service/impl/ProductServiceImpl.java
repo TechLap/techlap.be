@@ -4,11 +4,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.techlap.config.ModelMapperConfig;
+import com.example.techlap.domain.Brand;
+import com.example.techlap.domain.Category;
 import com.example.techlap.domain.Product;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResProductDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.ProductRepository;
+import com.example.techlap.service.BrandService;
+import com.example.techlap.service.CategoryService;
 import com.example.techlap.service.ProductService;
+
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
 
 import lombok.AllArgsConstructor;
 
@@ -17,9 +27,11 @@ import lombok.AllArgsConstructor;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final BrandService brandService;
+    private final CategoryService categoryService;
+    private final ModelMapper modelMapper;
     private static final String PRODUCT_EXISTS_EXCEPTION_MESSAGE = "Product already exists";
     private static final String PRODUCT_NOT_FOUND_EXCEPTION_MESSAGE = "Product not found";
-
 
     private Product findProductByIdOrThrow(long id) {
         return this.productRepository
@@ -28,10 +40,27 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ResProductDTO convertToResProductDTO(Product product) {
+        return modelMapper.map(product, ResProductDTO.class);
+    }
+
+    @Override
     public Product create(Product product) throws Exception {
         // Check if product already exists
         if (this.productRepository.existsByName(product.getName())) {
             throw new ResourceNotFoundException(PRODUCT_EXISTS_EXCEPTION_MESSAGE);
+        }
+
+        // Check brand
+        if (product.getBrand() != null) {
+            Brand brand = this.brandService.fetchBrandById(product.getBrand().getId());
+            product.setBrand(brand != null ? brand : null);
+        }
+
+        // Check category
+        if (product.getCategory() != null) {
+            Category category = this.categoryService.fetchCategoryById(product.getCategory().getId());
+            product.setCategory(category != null ? category : null);
         }
         return productRepository.save(product);
     }
@@ -77,6 +106,11 @@ public class ProductServiceImpl implements ProductService {
         res.setMeta(meta);
         res.setResult(prodPage.getContent());
 
+        List<ResProductDTO> listProd = prodPage.getContent().stream()
+                .map(this::convertToResProductDTO)
+                .toList();
+
+        res.setResult(listProd);
         return res;
     }
 

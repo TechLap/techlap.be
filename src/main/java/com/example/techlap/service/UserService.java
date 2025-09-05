@@ -3,14 +3,18 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.User;
+import com.example.techlap.domain.request.ReqUpdateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResUserDTO;
 
 public interface UserService {
     // Create a user
     User create(User user) throws Exception;
 
     // Update a user
-    User update(User user) throws Exception;
+    User update(ReqUpdateUserDTO reqUser) throws Exception;
 
     // Find a user by id
     User fetchUserById(long id) throws Exception;
@@ -27,4 +31,11 @@ public interface UserService {
     void updateUserToken(String token, String email) throws Exception;
 
     User getUserByRefreshTokenAndEmail(String token, String email) throws Exception;
+
+    ResUserDTO convertToResUserDTO(User user) throws Exception;
+
+    ResCreateUserDTO convertToResCreateUserDTO(User user) throws Exception;
+
+    ResUpdateUserDTO convertToResUpdateUserDTO(User user) throws Exception;
+
 }

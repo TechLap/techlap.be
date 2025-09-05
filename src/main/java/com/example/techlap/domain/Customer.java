@@ -34,9 +34,16 @@ public class Customer {
     @NotBlank(message = "fullName isn't blank")
     private String fullName;
 
+    @NotBlank(message = "Address isn't blank")
+    private String address;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
     @Pattern(regexp = "^(0[0-9]{9})$", message = "Invalid phone number")
     private String phone;
-    private Long totalOrder;
+    private Long totalOrders;
     private Long totalSpending;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.REMOVE)
