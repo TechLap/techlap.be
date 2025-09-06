@@ -1,5 +1,8 @@
 package com.example.techlap.service.impl;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.User;
+import com.example.techlap.domain.QUser;
+import com.example.techlap.domain.criteria.CriteriaFilterUser;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -21,6 +26,7 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.RoleService;
 import com.example.techlap.service.UserService;
+import com.querydsl.core.BooleanBuilder;
 
 import lombok.AllArgsConstructor;
 
@@ -135,6 +141,49 @@ public class UserServiceImpl implements UserService {
 
     public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
         return modelMapper.map(user, ResUpdateUserDTO.class);
+    }
+
+    @Override
+    public ResPaginationDTO filterUser(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception {
+        QUser qUser = QUser.user;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        if (criteriaUser.getFullName() != null && !criteriaUser.getFullName().isEmpty()) {
+            booleanBuilder.and(qUser.fullName.containsIgnoreCase(criteriaUser.getFullName()));
+        }
+        if (criteriaUser.getEmail() != null && !criteriaUser.getEmail().isEmpty()) {
+            booleanBuilder.and(qUser.email.containsIgnoreCase(criteriaUser.getEmail()));
+        }
+        if (criteriaUser.getPhone() != null && !criteriaUser.getPhone().isEmpty()) {
+            booleanBuilder.and(qUser.phone.containsIgnoreCase(criteriaUser.getPhone()));
+        }
+        if (criteriaUser.getAddress() != null && !criteriaUser.getAddress().isEmpty()) {
+            booleanBuilder.and(qUser.address.containsIgnoreCase(criteriaUser.getAddress()));
+        }
+        if (criteriaUser.getRole() != null) {
+            booleanBuilder.and(qUser.role.eq(criteriaUser.getRole()));
+        }
+        if (criteriaUser.getCreatedAt() != null && !criteriaUser.getCreatedAt().isEmpty()) {
+            LocalDate localDate = LocalDate.parse(criteriaUser.getCreatedAt());
+            ZoneId defaultZoneId = ZoneId.systemDefault();
+            Instant from = localDate.atStartOfDay(defaultZoneId).toInstant();
+            Instant to = localDate.plusDays(1).atStartOfDay(defaultZoneId).minusNanos(1).toInstant();
+            booleanBuilder.and(qUser.createdAt.between(from, to));
+        }
+
+        Page<User> userPage = userRepository.findAll(booleanBuilder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+        meta.setPage(userPage.getNumber() + 1);
+        meta.setPageSize(userPage.getSize());
+        meta.setPages(userPage.getTotalPages());
+        meta.setTotal(userPage.getTotalElements());
+        res.setMeta(meta);
+        List<ResUserDTO> listUser = userPage.getContent()
+                .stream().map(this::convertToResUserDTO)
+                .collect(Collectors.toList());
+        res.setResult(listUser);
+        return res;
     }
 
 }

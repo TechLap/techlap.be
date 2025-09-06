@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.User;
+import com.example.techlap.domain.criteria.CriteriaFilterUser;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -37,5 +38,7 @@ public interface UserService {
     ResCreateUserDTO convertToResCreateUserDTO(User user) throws Exception;
 
     ResUpdateUserDTO convertToResUpdateUserDTO(User user) throws Exception;
+
+    ResPaginationDTO filterUser(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception;
 
 }

@@ -4,6 +4,18 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
+val queryDslVersion = "5.0.0"
+val javaxVersion = "2.2"
+
+// sourceSets {
+//     main {
+//         java {
+//             srcDir("build/generated/sources/annotationProcessor/java/main")
+//         }
+//     }
+// }
+
+
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 description = "BE for TechLapShop"
@@ -43,8 +55,13 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("com.turkraft.springfilter:jpa:3.1.7")
 	implementation("org.modelmapper:modelmapper:3.1.1")
-
+	implementation("com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta")
+	annotationProcessor("com.querydsl:querydsl-apt:${queryDslVersion}:jakarta")
+	annotationProcessor("javax.persistence:javax.persistence-api:${javaxVersion}")
+	annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }
+
+
 
 tasks.withType<Test> {
 	useJUnitPlatform()
