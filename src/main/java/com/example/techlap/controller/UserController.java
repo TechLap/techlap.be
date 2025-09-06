@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterUser;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -56,6 +57,15 @@ public class UserController {
     public ResponseEntity<ResPaginationDTO> fetchAllUsers(
             Pageable pageable) throws Exception {
         ResPaginationDTO res = this.userService.fetchAllUsersWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/users/filter")
+    @ApiMessage("Filter users with criteria")
+    public ResponseEntity<ResPaginationDTO> filterUsers(
+            Pageable pageable,
+            @RequestBody CriteriaFilterUser criteriaUser) throws Exception {
+        ResPaginationDTO res = this.userService.filterUser(pageable, criteriaUser);
         return ResponseEntity.ok(res);
     }
 
