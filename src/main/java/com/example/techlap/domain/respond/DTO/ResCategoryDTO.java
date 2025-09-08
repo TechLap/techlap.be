@@ -3,6 +3,8 @@ package com.example.techlap.domain.respond.DTO;
 import java.time.Instant;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +19,8 @@ public class ResCategoryDTO {
     private String createdBy;
     private String updatedBy;
 
-    private List<ResProductDTO> products;
+    @JsonIgnore
+    private List<ProductDTO> products;
 
     @Getter
     @Setter

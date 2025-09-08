@@ -5,7 +5,6 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +13,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.example.techlap.domain.enums.ProductStatus;
 import com.example.techlap.util.SecurityUtil;
 
 @Entity
@@ -37,7 +37,7 @@ public class Product {
     @NotBlank(message = "description isn't blank")
     private String description;
     private String image;
-    private String status;
+    private ProductStatus status;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

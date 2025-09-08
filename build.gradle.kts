@@ -7,13 +7,13 @@ plugins {
 val queryDslVersion = "5.0.0"
 val javaxVersion = "2.2"
 
-// sourceSets {
-//     main {
-//         java {
-//             srcDir("build/generated/sources/annotationProcessor/java/main")
-//         }
-//     }
-// }
+sourceSets {
+    main {
+        java {
+            srcDir("build/generated/sources/annotationProcessor/java/main")
+        }
+    }
+}
 
 
 group = "com.example"

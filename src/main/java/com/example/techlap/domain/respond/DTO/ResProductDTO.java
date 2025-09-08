@@ -2,6 +2,9 @@ package com.example.techlap.domain.respond.DTO;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+
+import com.example.techlap.domain.enums.ProductStatus;
+
 import lombok.Data;
 
 @Data
@@ -13,7 +16,7 @@ public class ResProductDTO {
     private long stock;
     private String description;
     private String image;
-    private String status;
+    private ProductStatus status;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
