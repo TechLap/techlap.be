@@ -1,12 +1,15 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Category;
+import com.example.techlap.domain.QCategory;
+import com.example.techlap.domain.criteria.CriteriaFilterCategory;
 import com.example.techlap.domain.respond.DTO.ResCategoryDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.CategoryRepository;
 import com.example.techlap.service.CategoryService;
+import com.querydsl.core.BooleanBuilder;
 
 import lombok.AllArgsConstructor;
 
@@ -92,4 +95,34 @@ public class CategoryServiceImpl implements CategoryService {
         res.setResult(categoryDTOs);
         return res;
     }
+
+    @Override
+    public ResPaginationDTO filterCategories(Pageable pageable, CriteriaFilterCategory criteriaFilterCategory) {
+        QCategory qCategory = QCategory.category;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterCategory.getName() != null && !criteriaFilterCategory.getName().isEmpty()) {
+            builder.and(qCategory.name.containsIgnoreCase(criteriaFilterCategory.getName()));
+        }
+
+        Page<Category> catPage = categoryRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(catPage.getNumber() + 1);
+        meta.setPageSize(catPage.getSize());
+        meta.setPages(catPage.getTotalPages());
+        meta.setTotal(catPage.getTotalElements());
+
+        res.setMeta(meta);
+
+        List<ResCategoryDTO> listCat = catPage.getContent()
+                .stream()
+                .map(this::convertToResCategoryDTO)
+                .toList();
+
+        res.setResult(listCat);
+        return res;
+    }
+
 }

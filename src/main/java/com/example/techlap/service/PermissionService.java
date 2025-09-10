@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Permission;
+import com.example.techlap.domain.criteria.CriteriaFilterPermission;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 
@@ -26,5 +27,8 @@ public interface PermissionService {
     void delete(long id) throws Exception;
 
     ResPermissionDTO convertToResPermissionDTO(Permission permission) throws Exception;
+
+    ResPaginationDTO filterPermissions(Pageable pageable, CriteriaFilterPermission criteriaFilterPermission)
+            throws Exception;
 
 }

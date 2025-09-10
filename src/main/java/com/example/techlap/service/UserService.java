@@ -39,6 +39,6 @@ public interface UserService {
 
     ResUpdateUserDTO convertToResUpdateUserDTO(User user) throws Exception;
 
-    ResPaginationDTO filterUser(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception;
+    ResPaginationDTO filterUsers(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception;
 
 }

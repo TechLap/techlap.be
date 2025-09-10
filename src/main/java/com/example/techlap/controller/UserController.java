@@ -61,11 +61,11 @@ public class UserController {
     }
 
     @PostMapping("/users/filter")
-    @ApiMessage("Filter users with criteria")
+    @ApiMessage("Filter users")
     public ResponseEntity<ResPaginationDTO> filterUsers(
             Pageable pageable,
             @RequestBody CriteriaFilterUser criteriaUser) throws Exception {
-        ResPaginationDTO res = this.userService.filterUser(pageable, criteriaUser);
+        ResPaginationDTO res = this.userService.filterUsers(pageable, criteriaUser);
         return ResponseEntity.ok(res);
     }
 

@@ -8,6 +8,9 @@ import com.example.techlap.config.ModelMapperConfig;
 import com.example.techlap.domain.Brand;
 import com.example.techlap.domain.Category;
 import com.example.techlap.domain.Product;
+import com.example.techlap.domain.QProduct;
+import com.example.techlap.domain.criteria.CriteriaFilterProduct;
+import com.example.techlap.domain.enums.ProductStatus;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResProductDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
@@ -15,7 +18,11 @@ import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.BrandService;
 import com.example.techlap.service.CategoryService;
 import com.example.techlap.service.ProductService;
+import com.querydsl.core.BooleanBuilder;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -119,4 +126,63 @@ public class ProductServiceImpl implements ProductService {
         Product product = this.findProductByIdOrThrow(id);
         this.productRepository.delete(product);
     }
+
+    @Override
+    public ResPaginationDTO filterProducts(Pageable pageable, CriteriaFilterProduct criteriaFilterProduct)
+            throws Exception {
+
+        QProduct qProduct = QProduct.product;
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterProduct.getName() != null && !criteriaFilterProduct.getName().isEmpty()) {
+            builder.and(qProduct.name.containsIgnoreCase(criteriaFilterProduct.getName()));
+        }
+        if (criteriaFilterProduct.getStatus() != null && !criteriaFilterProduct.getStatus().toString().isEmpty()) {
+            builder.and(qProduct.status.eq((ProductStatus) criteriaFilterProduct.getStatus()));
+        }
+
+        if (criteriaFilterProduct.getBrand() != null) {
+            builder.and(qProduct.brand.eq(criteriaFilterProduct.getBrand()));
+        }
+
+        if (criteriaFilterProduct.getCategory() != null) {
+            builder.and(qProduct.category.eq(criteriaFilterProduct.getCategory()));
+        }
+        if (criteriaFilterProduct.getPriceRange() != null
+                && (criteriaFilterProduct.getPriceRange().getMinPrice() != null
+                        || criteriaFilterProduct.getPriceRange().getMaxPrice() != null)) {
+            if (criteriaFilterProduct.getPriceRange().getMinPrice() != null) {
+                builder.and(qProduct.price.goe(criteriaFilterProduct.getPriceRange().getMinPrice()));
+            }
+            if (criteriaFilterProduct.getPriceRange().getMaxPrice() != null) {
+                builder.and(qProduct.price.loe(criteriaFilterProduct.getPriceRange().getMaxPrice()));
+            }
+        }
+        if (criteriaFilterProduct.getCreatedAt() != null && !criteriaFilterProduct.getCreatedAt().isEmpty()) {
+            LocalDate localDate = LocalDate.parse(criteriaFilterProduct.getCreatedAt());
+            ZoneId zone = ZoneId.systemDefault();
+            Instant from = localDate.atStartOfDay(zone).toInstant();
+            Instant to = localDate.plusDays(1).atStartOfDay(zone).minusNanos(1).toInstant();
+            builder.and(qProduct.createdAt.between(from, to));
+        }
+
+        Page<Product> prodPage = productRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(prodPage.getNumber() + 1);
+        meta.setPageSize(prodPage.getSize());
+        meta.setPages(prodPage.getTotalPages());
+        meta.setTotal(prodPage.getTotalElements());
+
+        res.setMeta(meta);
+        List<ResProductDTO> listProd = prodPage.getContent().stream()
+                .map(this::convertToResProductDTO)
+                .toList();
+
+        res.setResult(listProd);
+        return res;
+    }
+
 }

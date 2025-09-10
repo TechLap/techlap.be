@@ -1,8 +1,10 @@
 package com.example.techlap.service;
 
+import org.h2.mvstore.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Brand;
+import com.example.techlap.domain.criteria.CriteriaFilterBrand;
 import com.example.techlap.domain.respond.DTO.ResBrandDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 
@@ -27,5 +29,7 @@ public interface BrandService {
     void delete(long id) throws Exception;
 
     ResBrandDTO convertToResBrandDTO(Brand brand);
+
+    ResPaginationDTO filterBrands (Pageable pageable, CriteriaFilterBrand criteriaFilterBrand) throws Exception;
 
 }

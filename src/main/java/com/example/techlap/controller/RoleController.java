@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterRole;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 import com.example.techlap.service.RoleService;
@@ -53,6 +54,15 @@ public class RoleController {
     public ResponseEntity<ResPaginationDTO> fetchAllRoles(
             Pageable pageable) throws Exception {
         ResPaginationDTO res = this.roleService.fetchAllRolesWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/roles/filter")
+    @ApiMessage("Filter roles")
+    public ResponseEntity<ResPaginationDTO> filterRoles(
+            Pageable pageable,
+            @RequestBody CriteriaFilterRole criteriaFilterRole) throws Exception {
+        ResPaginationDTO res = this.roleService.filterRoles(pageable, criteriaFilterRole);
         return ResponseEntity.ok(res);
     }
 

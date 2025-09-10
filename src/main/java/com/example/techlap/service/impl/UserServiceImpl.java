@@ -144,34 +144,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResPaginationDTO filterUser(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception {
+    public ResPaginationDTO filterUsers(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception {
         QUser qUser = QUser.user;
-        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        BooleanBuilder builder = new BooleanBuilder();
 
         if (criteriaUser.getFullName() != null && !criteriaUser.getFullName().isEmpty()) {
-            booleanBuilder.and(qUser.fullName.containsIgnoreCase(criteriaUser.getFullName()));
+            builder.and(qUser.fullName.containsIgnoreCase(criteriaUser.getFullName()));
         }
         if (criteriaUser.getEmail() != null && !criteriaUser.getEmail().isEmpty()) {
-            booleanBuilder.and(qUser.email.containsIgnoreCase(criteriaUser.getEmail()));
+            builder.and(qUser.email.containsIgnoreCase(criteriaUser.getEmail()));
         }
         if (criteriaUser.getPhone() != null && !criteriaUser.getPhone().isEmpty()) {
-            booleanBuilder.and(qUser.phone.containsIgnoreCase(criteriaUser.getPhone()));
+            builder.and(qUser.phone.containsIgnoreCase(criteriaUser.getPhone()));
         }
         if (criteriaUser.getAddress() != null && !criteriaUser.getAddress().isEmpty()) {
-            booleanBuilder.and(qUser.address.containsIgnoreCase(criteriaUser.getAddress()));
+            builder.and(qUser.address.containsIgnoreCase(criteriaUser.getAddress()));
         }
         if (criteriaUser.getRole() != null) {
-            booleanBuilder.and(qUser.role.eq(criteriaUser.getRole()));
+            builder.and(qUser.role.eq(criteriaUser.getRole()));
         }
         if (criteriaUser.getCreatedAt() != null && !criteriaUser.getCreatedAt().isEmpty()) {
             LocalDate localDate = LocalDate.parse(criteriaUser.getCreatedAt());
             ZoneId defaultZoneId = ZoneId.systemDefault();
             Instant from = localDate.atStartOfDay(defaultZoneId).toInstant();
             Instant to = localDate.plusDays(1).atStartOfDay(defaultZoneId).minusNanos(1).toInstant();
-            booleanBuilder.and(qUser.createdAt.between(from, to));
+            builder.and(qUser.createdAt.between(from, to));
         }
 
-        Page<User> userPage = userRepository.findAll(booleanBuilder, pageable);
+        Page<User> userPage = userRepository.findAll(builder, pageable);
         ResPaginationDTO res = new ResPaginationDTO();
         ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
         meta.setPage(userPage.getNumber() + 1);

@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Permission;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterPermission;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 import com.example.techlap.service.PermissionService;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @AllArgsConstructor
@@ -20,19 +23,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class PermissionController {
     private final PermissionService permissionService;
 
-
     @PostMapping("/permissions")
     @ApiMessage("Create a permission")
-    public ResponseEntity<ResPermissionDTO> createPermission(@Valid @RequestBody Permission permission) throws Exception {
+    public ResponseEntity<ResPermissionDTO> createPermission(@Valid @RequestBody Permission permission)
+            throws Exception {
         Permission newPermission = permissionService.create(permission);
-        return ResponseEntity.status(HttpStatus.CREATED).body(permissionService.convertToResPermissionDTO(newPermission));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(permissionService.convertToResPermissionDTO(newPermission));
     }
 
     @PutMapping("/permissions")
     @ApiMessage("Update a permission")
-    public ResponseEntity<ResPermissionDTO> updatePermission(@Valid @RequestBody Permission permission) throws Exception {
+    public ResponseEntity<ResPermissionDTO> updatePermission(@Valid @RequestBody Permission permission)
+            throws Exception {
         Permission currentPermission = permissionService.update(permission);
-        return ResponseEntity.status(HttpStatus.CREATED).body(permissionService.convertToResPermissionDTO(currentPermission));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(permissionService.convertToResPermissionDTO(currentPermission));
     }
 
     @GetMapping("/permissions/{id}")
@@ -54,6 +60,14 @@ public class PermissionController {
     public ResponseEntity<ResPaginationDTO> fetchAllPermissions(
             Pageable pageable) throws Exception {
         ResPaginationDTO res = this.permissionService.fetchAllPermissionsWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/permissions/filter")
+    @ApiMessage("Filter permissions")
+    public ResponseEntity<ResPaginationDTO> filterPermissions(Pageable pageable,
+            @RequestBody CriteriaFilterPermission criteriaFilterPermission) throws Exception {
+        ResPaginationDTO res = this.permissionService.filterPermissions(pageable, criteriaFilterPermission);
         return ResponseEntity.ok(res);
     }
 

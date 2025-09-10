@@ -1,6 +1,8 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.QCustomer;
+import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -8,9 +10,13 @@ import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.service.CustomerService;
+import com.querydsl.core.BooleanBuilder;
 
 import lombok.AllArgsConstructor;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -54,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer update(ReqUpdateCustomerDTO reqCustomer) throws Exception {
         Customer customerInDB = this.findCustomerByIdOrThrow(reqCustomer.getId());
-        
+
         customerInDB.setFullName(reqCustomer.getFullName());
         customerInDB.setPhone(reqCustomer.getPhone());
         customerInDB.setAddress(reqCustomer.getAddress());
@@ -99,6 +105,51 @@ public class CustomerServiceImpl implements CustomerService {
 
         res.setResult(customerDTOs);
 
+        return res;
+    }
+
+    @Override
+    public ResPaginationDTO filterCustomers(Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer)
+            throws Exception {
+        QCustomer qCustomer = QCustomer.customer;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterCustomer.getEmail() != null && !criteriaFilterCustomer.getEmail().isEmpty()) {
+            builder.and(qCustomer.email.containsIgnoreCase(criteriaFilterCustomer.getEmail()));
+        }
+        if (criteriaFilterCustomer.getFullName() != null && !criteriaFilterCustomer.getFullName().isEmpty()) {
+            builder.and(qCustomer.fullName.containsIgnoreCase(criteriaFilterCustomer.getFullName()));
+        }
+        if (criteriaFilterCustomer.getPhone() != null && !criteriaFilterCustomer.getPhone().isEmpty()) {
+            builder.and(qCustomer.phone.containsIgnoreCase(criteriaFilterCustomer.getPhone()));
+        }
+        if (criteriaFilterCustomer.getAddress() != null && !criteriaFilterCustomer.getAddress().isEmpty()) {
+            builder.and(qCustomer.address.containsIgnoreCase(criteriaFilterCustomer.getAddress()));
+        }
+        if (criteriaFilterCustomer.getCreatedAt() != null && !criteriaFilterCustomer.getCreatedAt().isEmpty()) {
+            LocalDate localDate = LocalDate.parse(criteriaFilterCustomer.getCreatedAt());
+            ZoneId defaultZoneId = ZoneId.systemDefault();
+            Instant from = localDate.atStartOfDay(defaultZoneId).toInstant();
+            Instant to = localDate.plusDays(1).atStartOfDay(defaultZoneId).minusNanos(1).toInstant();
+            builder.and(qCustomer.createdAt.between(from, to));
+        }
+
+        Page<Customer> customerPage = customerRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(customerPage.getNumber() + 1);
+        meta.setPageSize(customerPage.getSize());
+        meta.setPages(customerPage.getTotalPages());
+        meta.setTotal(customerPage.getTotalElements());
+
+        res.setMeta(meta);
+
+        List<ResCustomerDTO> customerDTOs = customerPage.getContent()
+                .stream()
+                .map(this::convertToResCustomerDTO)
+                .toList();
+        res.setResult(customerDTOs);
         return res;
     }
 }

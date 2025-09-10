@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -29,4 +30,5 @@ public interface CustomerService {
     // Convert entity to DTO
     ResCustomerDTO convertToResCustomerDTO(Customer customer);
 
+    ResPaginationDTO filterCustomers (Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer) throws Exception;
 }

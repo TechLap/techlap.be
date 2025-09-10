@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.techlap.domain.Brand;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterBrand;
 import com.example.techlap.domain.respond.DTO.ResBrandDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.BrandService;
@@ -63,6 +64,15 @@ public class BrandController {
     public ResponseEntity<Void> deleteProduct(@PathVariable("id") long id) throws Exception {
         this.brandService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/brands/filter")
+    @ApiMessage("Filter brands")
+    public ResponseEntity<ResPaginationDTO> filterBrands(
+            Pageable pageable,
+            @RequestBody CriteriaFilterBrand criteriaFilterBrand) throws Exception {
+        ResPaginationDTO res = this.brandService.filterBrands(pageable, criteriaFilterBrand);
+        return ResponseEntity.ok(res);
     }
 
 }

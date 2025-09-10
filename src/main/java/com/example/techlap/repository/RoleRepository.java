@@ -7,8 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
-public interface RoleRepository extends JpaRepository<Role, Long> {
+public interface RoleRepository extends JpaRepository<Role, Long>, QuerydslPredicateExecutor<Role> {
     boolean existsByName(String name);
 
     Role findByName(@NotBlank(message = "name isn't blank") String name);

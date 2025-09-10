@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Role;
+import com.example.techlap.domain.criteria.CriteriaFilterRole;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 
@@ -26,5 +27,8 @@ public interface RoleService {
     void delete(long id) throws Exception;
 
     ResRoleDTO convertToResRoleDTO(Role role) throws Exception;
+
+    ResPaginationDTO filterRoles(Pageable pageable, CriteriaFilterRole criteriaFilterRole)
+            throws Exception;
 
 }

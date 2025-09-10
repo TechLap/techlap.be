@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Category;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterCategory;
 import com.example.techlap.domain.respond.DTO.ResCategoryDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CategoryService;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @AllArgsConstructor
@@ -24,21 +27,23 @@ public class CategoryController {
     @ApiMessage("Create a category")
     public ResponseEntity<ResCategoryDTO> createCategory(@Valid @RequestBody Category category) throws Exception {
         Category newCategory = categoryService.create(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.categoryService.convertToResCategoryDTO(newCategory));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(this.categoryService.convertToResCategoryDTO(newCategory));
     }
 
     @PutMapping("/categories")
     @ApiMessage("Update a category")
     public ResponseEntity<ResCategoryDTO> updateCategory(@Valid @RequestBody Category category) throws Exception {
         Category currentCategory = categoryService.update(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.categoryService.convertToResCategoryDTO(currentCategory));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(this.categoryService.convertToResCategoryDTO(currentCategory));
     }
 
     @GetMapping("/categories/{id}")
     @ApiMessage("Fetch category by id")
     public ResponseEntity<ResCategoryDTO> fetchCategoryById(@PathVariable("id") long id) throws Exception {
-            Category category = this.categoryService.fetchCategoryById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(this.categoryService.convertToResCategoryDTO(category));
+        Category category = this.categoryService.fetchCategoryById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.categoryService.convertToResCategoryDTO(category));
     }
 
     @DeleteMapping("/categories/{id}")
@@ -53,6 +58,14 @@ public class CategoryController {
     public ResponseEntity<ResPaginationDTO> fetchAllCategories(
             Pageable pageable) throws Exception {
         ResPaginationDTO res = this.categoryService.fetchAllCategoriesWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/categories/filter")
+    @ApiMessage("Filter categories")
+    public ResponseEntity<ResPaginationDTO> filterCategories(Pageable pageable,
+            @RequestBody CriteriaFilterCategory criteriaFilterCategory) throws Exception {
+        ResPaginationDTO res = this.categoryService.filterCategories(pageable, criteriaFilterCategory);
         return ResponseEntity.ok(res);
     }
 
