@@ -1,7 +1,9 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Permission;
+import com.example.techlap.domain.QPermission;
 import com.example.techlap.domain.Role;
+import com.example.techlap.domain.criteria.CriteriaFilterPermission;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResPermissionDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
@@ -9,9 +11,13 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.PermissionRepository;
 import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.PermissionService;
+import com.querydsl.core.BooleanBuilder;
 
 import lombok.AllArgsConstructor;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -101,6 +107,50 @@ public class PermissionServiceImpl implements PermissionService {
                 .collect(Collectors.toList());
         res.setResult(listPermissions);
 
+        return res;
+    }
+
+    @Override
+    public ResPaginationDTO filterPermissions(Pageable pageable, CriteriaFilterPermission criteriaFilterPermission)
+            throws Exception {
+        QPermission qPermission = QPermission.permission;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterPermission.getName() != null && !criteriaFilterPermission.getName().isEmpty()) {
+            builder.and(qPermission.name.containsIgnoreCase(criteriaFilterPermission.getName()));
+
+        }
+        if (criteriaFilterPermission.getApiPath() != null && !criteriaFilterPermission.getApiPath().isEmpty()) {
+            builder.and(qPermission.apiPath.containsIgnoreCase(criteriaFilterPermission.getApiPath()));
+        }
+        if (criteriaFilterPermission.getMethod() != null && !criteriaFilterPermission.getMethod().isEmpty()) {
+            builder.and(qPermission.method.containsIgnoreCase(criteriaFilterPermission.getMethod()));
+        }
+        if (criteriaFilterPermission.getModule() != null && !criteriaFilterPermission.getModule().isEmpty()) {
+            builder.and(qPermission.module.containsIgnoreCase(criteriaFilterPermission.getModule()));
+        }
+
+        if (criteriaFilterPermission.getCreatedAt() != null && !criteriaFilterPermission.getCreatedAt().isEmpty()) {
+            LocalDate locateDate = LocalDate.parse(criteriaFilterPermission.getCreatedAt());
+            ZoneId zone = ZoneId.systemDefault();
+            Instant from = locateDate.atStartOfDay(zone).toInstant();
+            Instant to = locateDate.plusDays(1).atStartOfDay(zone).toInstant();
+            builder.and(qPermission.createdAt.between(from, to));
+        }
+
+        Page<Permission> permissionPage = permissionRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+        meta.setPage(permissionPage.getNumber() + 1);
+        meta.setPageSize(permissionPage.getSize());
+        meta.setPages(permissionPage.getTotalPages());
+        meta.setTotal(permissionPage.getTotalElements());
+        res.setMeta(meta);
+
+        List<ResPermissionDTO> listPermissions = permissionPage.getContent()
+                .stream().map(item -> this.convertToResPermissionDTO(item))
+                .collect(Collectors.toList());
+        res.setResult(listPermissions);
         return res;
     }
 

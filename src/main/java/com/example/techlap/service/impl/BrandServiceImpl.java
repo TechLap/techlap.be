@@ -8,12 +8,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.techlap.domain.Brand;
+import com.example.techlap.domain.QBrand;
+import com.example.techlap.domain.criteria.CriteriaFilterBrand;
 import com.example.techlap.domain.respond.DTO.ResBrandDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.BrandRepository;
 import com.example.techlap.service.BrandService;
 import com.example.techlap.service.ProductService;
+import com.querydsl.core.BooleanBuilder;
 
 import ch.qos.logback.core.model.Model;
 import lombok.AllArgsConstructor;
@@ -94,5 +97,33 @@ public class BrandServiceImpl implements BrandService {
     public void delete(long id) throws Exception {
         Brand brand = this.findBrandByIdOrThrow(id);
         this.brandRepository.delete(brand);
+    }
+
+    @Override
+    public ResPaginationDTO filterBrands(Pageable pageable, CriteriaFilterBrand criteriaFilterBrand) throws Exception {
+        QBrand qBrand = QBrand.brand;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if(criteriaFilterBrand.getName() != null && !criteriaFilterBrand.getName().isEmpty()){
+            builder.and(qBrand.name.containsIgnoreCase(criteriaFilterBrand.getName()));
+        }
+
+        Page<Brand> brandPage = brandRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new  ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(brandPage.getNumber() + 1);
+        meta.setPageSize(brandPage.getSize());
+        meta.setPages(brandPage.getTotalPages());
+        meta.setTotal(brandPage.getTotalElements());
+
+        res.setMeta(meta);
+
+        List<ResBrandDTO> listBrands = brandPage.getContent().stream()
+                .map(this::convertToResBrandDTO)
+                .toList();
+        res.setResult(listBrands);
+        return res;
+        
     }
 }

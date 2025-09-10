@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.techlap.domain.Product;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterProduct;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResProductDTO;
 import com.example.techlap.service.ProductService;
@@ -63,6 +64,14 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable("id") long id) throws Exception {
         this.productService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("products/filter")
+    @ApiMessage("Filter products")
+    public ResponseEntity<ResPaginationDTO> filterProducts(Pageable pageable,
+            @RequestBody CriteriaFilterProduct criteriaFilterProduct) throws Exception {
+        ResPaginationDTO res = this.productService.filterProducts(pageable, criteriaFilterProduct);
+        return ResponseEntity.ok(res);
     }
 
 }

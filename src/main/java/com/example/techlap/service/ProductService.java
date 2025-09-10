@@ -3,6 +3,7 @@ package com.example.techlap.service;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Product;
+import com.example.techlap.domain.criteria.CriteriaFilterProduct;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResProductDTO;
 
@@ -27,5 +28,7 @@ public interface ProductService {
     void delete(long id) throws Exception;
 
     ResProductDTO convertToResProductDTO(Product product) throws Exception;
+
+    ResPaginationDTO filterProducts(Pageable pageable, CriteriaFilterProduct criteriaFilterProduct) throws Exception;
 
 }

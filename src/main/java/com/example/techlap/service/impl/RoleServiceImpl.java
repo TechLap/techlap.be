@@ -1,7 +1,9 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.Permission;
+import com.example.techlap.domain.QRole;
 import com.example.techlap.domain.Role;
+import com.example.techlap.domain.criteria.CriteriaFilterRole;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResRoleDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
@@ -9,9 +11,13 @@ import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.PermissionRepository;
 import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.RoleService;
+import com.querydsl.core.BooleanBuilder;
 
 import lombok.AllArgsConstructor;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,4 +117,41 @@ public class RoleServiceImpl implements RoleService {
     public ResRoleDTO convertToResRoleDTO(Role role) {
         return modelMapper.map(role, ResRoleDTO.class);
     }
+
+    @Override
+    public ResPaginationDTO filterRoles(Pageable pageable, CriteriaFilterRole criteriaFilterRole) throws Exception {
+        QRole qRole = QRole.role;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterRole.getName() != null && !criteriaFilterRole.getName().isEmpty()) {
+            builder.and(qRole.name.containsIgnoreCase(criteriaFilterRole.getName()));
+        }
+        if (criteriaFilterRole.getCreatedAt() != null && !criteriaFilterRole.getCreatedAt().isEmpty()) {
+            LocalDate localDate = LocalDate.parse(criteriaFilterRole.getCreatedAt());
+            ZoneId zoneId = ZoneId.systemDefault();
+            Instant startOfDay = localDate.atStartOfDay(zoneId).toInstant();
+            Instant endOfDay = localDate.plusDays(1).atStartOfDay(zoneId).toInstant();
+            builder.and(qRole.createdAt.between(startOfDay, endOfDay));
+        }
+
+        Page<Role> rolePage = roleRepository.findAll(builder, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(rolePage.getNumber() + 1);
+        meta.setPageSize(rolePage.getSize());
+        meta.setPages(rolePage.getTotalPages());
+        meta.setTotal(rolePage.getTotalElements());
+
+        res.setMeta(meta);
+
+        List<ResRoleDTO> listRole = rolePage.getContent()
+                .stream().map(this::convertToResRoleDTO)
+                .collect(Collectors.toList());
+
+        res.setResult(listRole);
+
+        return res;
+    }
+
 }

@@ -2,6 +2,7 @@ package com.example.techlap.controller;
 
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.annotation.ApiMessage;
+import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -56,6 +57,15 @@ public class CustomerController {
     public ResponseEntity<ResPaginationDTO> fetchAllCustomers(
             Pageable pageable) throws Exception {
         ResPaginationDTO res = this.customerService.fetchAllCustomersWithPagination(pageable);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/customers/filter")
+    @ApiMessage("Filter customers")
+    public ResponseEntity<ResPaginationDTO> filterCustomers(
+            Pageable pageable,
+            @RequestBody CriteriaFilterCustomer criteriaFilterCustomer) throws Exception {
+        ResPaginationDTO res = this.customerService.filterCustomers(pageable, criteriaFilterCustomer);
         return ResponseEntity.ok(res);
     }
 
