@@ -3,26 +3,41 @@ package com.example.techlap.controller;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.criteria.CriteriaFilterUser;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
+import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
+import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResUserDTO;
+import com.example.techlap.service.EmailService;
 import com.example.techlap.service.UserService;
+import com.example.techlap.util.SecurityUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/v1")
 public class UserController {
     private final UserService userService;
+    private final EmailService emailService;
+    private final MessageSource messages;
+    private final SecurityUtil securityUtil;
 
     @PostMapping("/users")
     @ApiMessage("Create a user")
@@ -67,6 +82,52 @@ public class UserController {
             @RequestBody CriteriaFilterUser criteriaUser) throws Exception {
         ResPaginationDTO res = this.userService.filterUsers(pageable, criteriaUser);
         return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/users/change-password/{id}")
+    @ApiMessage("Change password")
+    public ResponseEntity<Void> changePassword(@PathVariable("id") Long id,
+            @RequestBody @Valid ReqChangePasswordDTO changePasswordDTO) throws Exception {
+        this.userService.changePassword(id, changePasswordDTO);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/user/reset-password")
+    public GenericResponse resetPassword(HttpServletRequest request,
+            @RequestParam("email") String email) {
+        User user = userService.fetchUserByEmail(email);
+        if (user == null) {
+            throw new UsernameNotFoundException(email);
+        }
+        String token = UUID.randomUUID().toString();
+        emailService.createPasswordResetTokenForUser(user, token);
+        emailService.send(emailService.constructResetTokenEmail(emailService.getAppUrl(request),
+                request.getLocale(), token, user));
+        return new GenericResponse(
+                messages.getMessage("message.resetPasswordEmail", null,
+                        request.getLocale()));
+    }
+
+    @PostMapping("/user/change-password")
+    public GenericResponse savePassword(final Locale locale, @Valid @RequestBody ReqPasswordTokenDTO reqPasswordDTO)
+            throws Exception {
+
+        String result = securityUtil.validatePasswordResetToken(reqPasswordDTO.getToken());
+
+        if (result != null) {
+            return new GenericResponse(messages.getMessage(
+                    "auth.message." + result, null, locale));
+        }
+
+        User user = userService.getUserByPasswordResetToken(reqPasswordDTO.getToken());
+        if (user != null) {
+            userService.changeUserPassword(user, reqPasswordDTO.getNewPassword());
+            return new GenericResponse(messages.getMessage(
+                    "message.resetPasswordSuccess", null, locale));
+        } else {
+            return new GenericResponse(messages.getMessage(
+                    "auth.message.invalid", null, locale));
+        }
     }
 
 }

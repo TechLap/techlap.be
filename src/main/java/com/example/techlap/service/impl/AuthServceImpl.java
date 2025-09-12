@@ -1,5 +1,6 @@
 package com.example.techlap.service.impl;
 
+import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -12,6 +13,7 @@ import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.request.ReqLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
+import com.example.techlap.domain.respond.DTO.ResLoginDTO.UserLogin;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.repository.CustomerRepository;
@@ -47,11 +49,12 @@ public class AuthServceImpl implements AuthService {
 
         User inDBUser = this.userService.fetchUserByEmail(loginDTO.getUsername());
         if (inDBUser != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(inDBUser.getRole().getId(), inDBUser.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     inDBUser.getId(),
                     inDBUser.getEmail(),
                     inDBUser.getFullName(),
-                    inDBUser.getRole());
+                    roleDTO);
             res.setUser(userLogin);
         }
         // create accessToken
@@ -60,9 +63,9 @@ public class AuthServceImpl implements AuthService {
 
         // create refreshToken
         String refresh_token = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
-        res.setRefreshToken(refresh_token);
         // update user
         this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+
 
         // update user
         this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
@@ -83,11 +86,13 @@ public class AuthServceImpl implements AuthService {
 
         Customer inDBCustomer = this.customerService.fetchCustomerByEmail(loginDTO.getUsername());
         if (inDBCustomer != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(inDBCustomer.getRole().getId(),
+                    inDBCustomer.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     inDBCustomer.getId(),
                     inDBCustomer.getEmail(),
                     inDBCustomer.getFullName(),
-                    inDBCustomer.getRole());
+                    roleDTO);
             res.setUser(userLogin);
         }
         // create accessToken
@@ -96,7 +101,6 @@ public class AuthServceImpl implements AuthService {
 
         // create refreshToken
         String refresh_token = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
-        res.setRefreshToken(refresh_token);
         // update user
         this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
 
@@ -136,11 +140,13 @@ public class AuthServceImpl implements AuthService {
         ResLoginDTO res = new ResLoginDTO();
         User currentUserDB = this.userService.fetchUserByEmail(email);
         if (currentUserDB != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(currentUserDB.getRole().getId(),
+                    currentUserDB.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
                     currentUserDB.getFullName(),
-                    currentUserDB.getRole());
+                    roleDTO);
             res.setUser(userLogin);
         }
 
@@ -166,13 +172,17 @@ public class AuthServceImpl implements AuthService {
 
         User currentUserDB = this.userService.fetchUserByEmail(email);
         ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO();
         ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
 
         if (currentUserDB != null) {
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
             userLogin.setFullName(currentUserDB.getFullName());
-            userLogin.setRole(currentUserDB.getRole());
+
+            roleDTO.setId(currentUserDB.getRole().getId());
+            roleDTO.setName(currentUserDB.getRole().getName());
+            userLogin.setRole(roleDTO);
 
             userGetAccount.setUser(userLogin);
         }

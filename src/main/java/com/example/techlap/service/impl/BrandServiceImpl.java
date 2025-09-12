@@ -15,10 +15,8 @@ import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.BrandRepository;
 import com.example.techlap.service.BrandService;
-import com.example.techlap.service.ProductService;
 import com.querydsl.core.BooleanBuilder;
 
-import ch.qos.logback.core.model.Model;
 import lombok.AllArgsConstructor;
 
 @Service

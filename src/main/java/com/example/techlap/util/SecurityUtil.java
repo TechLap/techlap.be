@@ -1,7 +1,9 @@
 package com.example.techlap.util;
 
 import com.example.techlap.constant.JwtConstants;
+import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
+import com.example.techlap.repository.PasswordResetTokenRepository;
 import com.nimbusds.jose.util.Base64;
 
 import lombok.AllArgsConstructor;
@@ -18,6 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +30,7 @@ public class SecurityUtil {
 
     private final JwtEncoder jwtEncoder;
     private final JwtConstants jwtConstants;
+    private final PasswordResetTokenRepository passwordTokenRepository;
 
     // tạo token khi đăng nhập
     public String createAccessToken(String email, ResLoginDTO dto) {
@@ -116,6 +120,24 @@ public class SecurityUtil {
             return s;
         }
         return null;
+    
+    }
+
+    public String validatePasswordResetToken(String token) {
+        final PasswordResetToken passToken = passwordTokenRepository.findByToken(token);
+
+        return !isTokenFound(passToken) ? "invalidToken"
+                : isTokenExpired(passToken) ? "expired"
+                : null;
+        }
+
+    private boolean isTokenFound(PasswordResetToken passToken) {
+        return passToken != null;
+    }
+
+    private boolean isTokenExpired(PasswordResetToken passToken) {
+        final Calendar cal = Calendar.getInstance();
+        return passToken.getExpiryDate().before(cal.getTime());
     }
 
     /**

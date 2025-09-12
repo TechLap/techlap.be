@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.criteria.CriteriaFilterUser;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -41,4 +42,11 @@ public interface UserService {
 
     ResPaginationDTO filterUsers(Pageable pageable, CriteriaFilterUser criteriaUser) throws Exception;
 
+    void changePassword(Long id, ReqChangePasswordDTO changePasswordDTO) throws Exception;
+
+    boolean checkIfValidOldPassword(User user, String oldPassword);
+    
+    void changeUserPassword(User user, String newPassword);
+
+    User getUserByPasswordResetToken(String token) throws Exception;
 }

@@ -9,6 +9,7 @@ import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.request.ReqLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 import com.example.techlap.service.AuthService;
+import com.example.techlap.util.SecurityUtil;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class AuthController {
 
         private final AuthService authService;
         private final JwtConstants jwtConstants;
+        private final SecurityUtil securityUtil;
 
         @PostMapping("/register")
         public ResponseEntity<Customer> register(@Valid @RequestBody Customer customer) throws Exception {
@@ -43,8 +45,9 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO body) throws Exception {
                 ResLoginDTO res = this.authService.externalLogin(body);
+                String refreshToken = this.securityUtil.createRefreshToken(body.getUsername(), res);
                 ResponseCookie resCookies = ResponseCookie
-                                .from("refresh_token", res.getRefreshToken())
+                                .from("refresh_token", refreshToken)
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
@@ -60,8 +63,9 @@ public class AuthController {
         @PostMapping("/admin/login")
         public ResponseEntity<ResLoginDTO> internalLogin(@Valid @RequestBody ReqLoginDTO body) throws Exception {
                 ResLoginDTO res = this.authService.internalLogin(body);
+                String refreshToken = this.securityUtil.createRefreshToken(body.getUsername(), res);
                 ResponseCookie resCookies = ResponseCookie
-                                .from("refresh_token", res.getRefreshToken())
+                                .from("refresh_token", refreshToken)
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
