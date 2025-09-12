@@ -33,11 +33,21 @@ public class PasswordResetToken {
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
     private Date expiryDate;
 
     public PasswordResetToken(String token, User user) {
         this.token = token;
         this.user = user;
+        this.expiryDate = calculateExpiryDate(EXPIRATION);
+    }
+
+    public PasswordResetToken(String token, Customer customer) {
+        this.token = token;
+        this.customer = customer;
         this.expiryDate = calculateExpiryDate(EXPIRATION);
     }
 
