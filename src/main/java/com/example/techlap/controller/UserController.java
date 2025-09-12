@@ -20,14 +20,12 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 import java.util.Locale;
-import java.util.UUID;
 
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -93,41 +91,21 @@ public class UserController {
     }
 
     @PostMapping("/user/reset-password")
-    public GenericResponse resetPassword(HttpServletRequest request,
-            @RequestParam("email") String email) {
-        User user = userService.fetchUserByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException(email);
-        }
-        String token = UUID.randomUUID().toString();
-        emailService.createPasswordResetTokenForUser(user, token);
-        emailService.send(emailService.constructResetTokenEmail(emailService.getAppUrl(request),
-                request.getLocale(), token, user));
-        return new GenericResponse(
-                messages.getMessage("message.resetPasswordEmail", null,
-                        request.getLocale()));
+    @ApiMessage("Reset password")
+    public ResponseEntity<GenericResponse> resetPassword(HttpServletRequest request,
+            @RequestParam("email") String email) throws Exception {
+        GenericResponse response = emailService.resetUserPassword(request, email);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/user/change-password")
-    public GenericResponse savePassword(final Locale locale, @Valid @RequestBody ReqPasswordTokenDTO reqPasswordDTO)
+    @ApiMessage("Change password")
+    public ResponseEntity<GenericResponse> changePasswordToken(Locale locale,
+            @Valid @RequestBody ReqPasswordTokenDTO reqPasswordDTO)
             throws Exception {
 
-        String result = securityUtil.validatePasswordResetToken(reqPasswordDTO.getToken());
-
-        if (result != null) {
-            return new GenericResponse(messages.getMessage(
-                    "auth.message." + result, null, locale));
-        }
-
-        User user = userService.getUserByPasswordResetToken(reqPasswordDTO.getToken());
-        if (user != null) {
-            userService.changeUserPassword(user, reqPasswordDTO.getNewPassword());
-            return new GenericResponse(messages.getMessage(
-                    "message.resetPasswordSuccess", null, locale));
-        } else {
-            return new GenericResponse(messages.getMessage(
-                    "auth.message.invalid", null, locale));
-        }
+        GenericResponse response = emailService.saveUserPassword(locale, reqPasswordDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

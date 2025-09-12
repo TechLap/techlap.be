@@ -217,7 +217,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         passwordResetTokenRepository.deleteByUser(user);
         passwordResetTokenRepository.flush();
-
     }
 
     @Override
