@@ -1,6 +1,5 @@
 package com.example.techlap.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
 import org.springframework.http.ResponseEntity;

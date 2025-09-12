@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.User;
+import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.domain.QUser;
 import com.example.techlap.domain.criteria.CriteriaFilterUser;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -23,6 +25,7 @@ import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResUserDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.repository.PasswordResetTokenRepository;
 import com.example.techlap.repository.UserRepository;
 import com.example.techlap.service.RoleService;
 import com.example.techlap.service.UserService;
@@ -35,6 +38,7 @@ import lombok.AllArgsConstructor;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
@@ -184,6 +188,43 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
         res.setResult(listUser);
         return res;
+    }
+
+    @Override
+    public void changePassword(Long id, ReqChangePasswordDTO password) throws Exception {
+        User userInDB = this.findUserByIdOrThrow(id);
+
+        if (checkIfValidOldPassword(userInDB, password.getOldPassword())) {
+            if (password.getNewPassword().equals(password.getReNewPassword())) {
+                userInDB.setPassword(passwordEncoder.encode(password.getNewPassword()));
+                userRepository.save(userInDB);
+            } else {
+                throw new IllegalArgumentException("New password and re-new password do not match");
+            }
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+    }
+
+    @Override
+    public boolean checkIfValidOldPassword(User user, String oldPassword) {
+        return passwordEncoder.matches(oldPassword, user.getPassword());
+    }
+
+    @Override
+    public void changeUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+        passwordResetTokenRepository.deleteByUser(user);
+        passwordResetTokenRepository.flush();
+
+    }
+
+    @Override
+    public User getUserByPasswordResetToken(String token) throws Exception {
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token);
+        User user = passwordResetToken.getUser();
+        return user;
     }
 
 }
