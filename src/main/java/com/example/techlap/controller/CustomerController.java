@@ -1,9 +1,13 @@
 package com.example.techlap.controller;
 
+import com.example.techlap.domain.Cart;
+import com.example.techlap.domain.CartDetail;
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
+import com.example.techlap.domain.request.ReqAddToCartDTO;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CustomerService;
@@ -69,4 +73,16 @@ public class CustomerController {
         return ResponseEntity.ok(res);
     }
 
+    @PostMapping("/customers/add-to-cart")
+    @ApiMessage("Add a product into cart")
+    public ResponseEntity<ResCartDTO> addToCart(@RequestBody ReqAddToCartDTO reqAddToCartDTO) throws Exception {
+        Cart cart = this.customerService.addToCart(reqAddToCartDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.customerService.convertToResCartDTO(cart));
+    }
+
+    @GetMapping("/customers/get-cart")
+    @ApiMessage("Get a cart")
+    public ResponseEntity<ResCartDTO> getCart(@RequestBody String email) throws Exception {
+        return null;
+    }
 }

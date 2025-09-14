@@ -1,5 +1,6 @@
 package com.example.techlap.service.impl;
 
+import com.example.techlap.domain.respond.DTO.ResCustomerLoginDTO;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -72,36 +73,38 @@ public class AuthServceImpl implements AuthService {
 
     // External Login
     @Override
-    public ResLoginDTO externalLogin(ReqLoginDTO loginDTO) throws Exception {
+    public ResCustomerLoginDTO externalLogin(ReqLoginDTO loginDTO) throws Exception {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDTO.getUsername(), loginDTO.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        ResLoginDTO res = new ResLoginDTO();
+        ResCustomerLoginDTO res = new ResCustomerLoginDTO();
 
         Customer inDBCustomer = this.customerService.fetchCustomerByEmail(loginDTO.getUsername());
+        long totalCart = inDBCustomer.getCart() != null ?inDBCustomer.getCart().getSum():0;
         if (inDBCustomer != null) {
-            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+            ResCustomerLoginDTO.CustomerLogin customerLogin = new ResCustomerLoginDTO.CustomerLogin(
                     inDBCustomer.getId(),
                     inDBCustomer.getEmail(),
                     inDBCustomer.getFullName(),
+                    totalCart,
                     inDBCustomer.getRole());
-            res.setUser(userLogin);
+            res.setCustomer(customerLogin);
         }
         // create accessToken
-        String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
+        String access_token = this.securityUtil.createAccessTokenForCustomer(authentication.getName(), res);
         res.setAccessToken(access_token);
 
         // create refreshToken
-        String refresh_token = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
+        String refresh_token = this.securityUtil.createRefreshTokenForCustomer(loginDTO.getUsername(), res);
         res.setRefreshToken(refresh_token);
         // update user
-        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+        this.customerService.updateCustomerToken(refresh_token, loginDTO.getUsername());
 
         // update user
-        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+        this.customerService.updateCustomerToken(refresh_token, loginDTO.getUsername());
 
         return res;
     }
@@ -161,6 +164,48 @@ public class AuthServceImpl implements AuthService {
     }
 
     @Override
+    public ResCustomerLoginDTO getCustomerRefreshToken(String refresh_token) throws Exception {
+        // check valid
+        Jwt decodedToken = this.securityUtil.checkValidRefreshToken(refresh_token);
+        String email = decodedToken.getSubject();
+
+        // check user by token + email
+        Customer currentCustomer = this.customerService.getCustomerByRefreshTokenAndEmail(refresh_token, email);
+        if (currentCustomer == null) {
+            throw new IdInvalidException("Refresh Token không hợp lệ");
+        }
+
+        // issue new token/set refresh token as cookies
+        ResCustomerLoginDTO res = new ResCustomerLoginDTO();
+        Customer currentCustomerDB = this.customerService.fetchCustomerByEmail(email);
+        long totalCart = currentCustomerDB.getCart() != null ?currentCustomerDB.getCart().getSum():0;
+        if (currentCustomerDB != null) {
+            ResCustomerLoginDTO.CustomerLogin customerLogin = new ResCustomerLoginDTO.CustomerLogin(
+                    currentCustomerDB.getId(),
+                    currentCustomerDB.getEmail(),
+                    currentCustomerDB.getFullName(),
+                    totalCart,
+                    currentCustomerDB.getRole());
+            res.setCustomer(customerLogin);
+        }
+
+        // create access token
+        String access_token = this.securityUtil.createAccessTokenForCustomer(email, res);
+
+        res.setAccessToken(access_token);
+
+        // create refresh token
+        String new_refresh_token = this.securityUtil.createRefreshTokenForCustomer(email, res);
+        res.setRefreshToken(new_refresh_token);
+
+        // update user
+        this.customerService.updateCustomerToken(new_refresh_token, email);
+
+        return res;
+
+    }
+
+    @Override
     public ResLoginDTO.UserGetAccount getAccount() {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
 
@@ -177,6 +222,26 @@ public class AuthServceImpl implements AuthService {
             userGetAccount.setUser(userLogin);
         }
         return userGetAccount;
+    }
+
+    @Override
+    public ResCustomerLoginDTO.CustomerGetAccount getCustomer() {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
+
+        Customer currentCustomerDB = this.customerService.fetchCustomerByEmail(email);
+        ResCustomerLoginDTO.CustomerLogin customerLogin = new ResCustomerLoginDTO.CustomerLogin();
+        ResCustomerLoginDTO.CustomerGetAccount customerGetAccount = new ResCustomerLoginDTO.CustomerGetAccount();
+
+        if (currentCustomerDB != null) {
+            customerLogin.setId(currentCustomerDB.getId());
+            customerLogin.setEmail(currentCustomerDB.getEmail());
+            customerLogin.setFullName(currentCustomerDB.getFullName());
+            customerLogin.setTotalCart(currentCustomerDB.getCart().getSum());
+            customerLogin.setRole(currentCustomerDB.getRole());
+
+            customerGetAccount.setCustomer(customerLogin);
+        }
+        return customerGetAccount;
     }
 
     @Override

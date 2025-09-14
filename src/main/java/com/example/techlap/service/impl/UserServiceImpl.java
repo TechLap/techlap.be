@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.techlap.repository.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final RoleService roleService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -49,7 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User create(User user) throws Exception {
         // Check Username
-        if (this.userRepository.existsByEmail(user.getEmail()))
+        if (this.userRepository.existsByEmail(user.getEmail()) || this.customerRepository.existsByEmail(user.getEmail()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
         // Save hashPassword

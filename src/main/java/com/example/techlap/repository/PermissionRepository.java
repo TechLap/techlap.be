@@ -1,7 +1,6 @@
 package com.example.techlap.repository;
 
 import com.example.techlap.domain.Permission;
-import com.mysql.cj.Query;
 
 import jakarta.validation.constraints.NotBlank;
 

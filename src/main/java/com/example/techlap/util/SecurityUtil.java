@@ -1,6 +1,7 @@
 package com.example.techlap.util;
 
 import com.example.techlap.constant.JwtConstants;
+import com.example.techlap.domain.respond.DTO.ResCustomerLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 import com.nimbusds.jose.util.Base64;
 
@@ -39,10 +40,7 @@ public class SecurityUtil {
         Instant validity = now.plus(this.jwtConstants.getAccessTokenExpiration(), ChronoUnit.SECONDS);
 
         // hardcode permission (for testing)
-        List<String> listAuthority = new ArrayList<String>();
-
-        listAuthority.add("ROLE_USER_CREATE");
-        listAuthority.add("ROLE_USER_UPDATE");
+        String role = "ROLE_USER";
 
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -50,7 +48,7 @@ public class SecurityUtil {
                 .expiresAt(validity)
                 .subject(email)
                 .claim("user", userToken)
-                .claim("permissions", listAuthority)
+                .claim("role", role)
                 .build();
         JwsHeader jwsHeader = JwsHeader.with(JwtConstants.JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader,
@@ -72,6 +70,53 @@ public class SecurityUtil {
                 .expiresAt(validity)
                 .subject(email)
                 .claim("user", userToken)
+                .build();
+        JwsHeader jwsHeader = JwsHeader.with(JwtConstants.JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader,
+                claims)).getTokenValue();
+    }
+
+    // tạo token khi đăng nhập cho khách hàng
+    public String createAccessTokenForCustomer(String email, ResCustomerLoginDTO dto) {
+        ResCustomerLoginDTO.CustomerInsideToken customerToken = new ResCustomerLoginDTO.CustomerInsideToken();
+        customerToken.setId(dto.getCustomer().getId());
+        customerToken.setEmail(dto.getCustomer().getEmail());
+        customerToken.setFullName(dto.getCustomer().getFullName());
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.jwtConstants.getAccessTokenExpiration(), ChronoUnit.SECONDS);
+
+        // hardcode permission (for testing)
+        String role = "ROLE_CUSTOMER";
+
+        // @formatter:off
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(email)
+                .claim("customer", customerToken)
+                .claim("role", role)
+                .build();
+        JwsHeader jwsHeader = JwsHeader.with(JwtConstants.JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader,
+                claims)).getTokenValue();
+    }
+
+    public String createRefreshTokenForCustomer(String email, ResCustomerLoginDTO dto) {
+        ResCustomerLoginDTO.CustomerInsideToken customerToken = new ResCustomerLoginDTO.CustomerInsideToken();
+        customerToken.setId(dto.getCustomer().getId());
+        customerToken.setEmail(dto.getCustomer().getEmail());
+        customerToken.setFullName(dto.getCustomer().getFullName());
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.jwtConstants.getRefreshTokenExpiration(), ChronoUnit.SECONDS);
+
+        // @formatter:off
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(email)
+                .claim("customer", customerToken)
                 .build();
         JwsHeader jwsHeader = JwsHeader.with(JwtConstants.JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader,
