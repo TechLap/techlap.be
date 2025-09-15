@@ -1,10 +1,9 @@
 package com.example.techlap.domain.respond.DTO;
 
-import java.time.Instant;
-import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -16,13 +15,4 @@ public class ResCategoryDTO {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
-
-    private List<ResProductDTO> products;
-
-    @Getter
-    @Setter
-    public static class ProductDTO {
-        private Long id;
-        private String name;
-    }
 }

@@ -73,19 +73,19 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public ResPaginationDTO fetchAllCategoriesWithPagination(Pageable pageable) throws Exception {
-        Page<Category> userPage = categoryRepository.findAll(pageable);
+        Page<Category> categoryPages = categoryRepository.findAll(pageable);
         ResPaginationDTO res = new ResPaginationDTO();
         ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
 
-        meta.setPage(userPage.getNumber() + 1);
-        meta.setPageSize(userPage.getSize());
-        meta.setPages(userPage.getTotalPages());
-        meta.setTotal(userPage.getTotalElements());
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
+        meta.setPages(categoryPages.getTotalPages());
+        meta.setTotal(categoryPages.getTotalElements());
 
         res.setMeta(meta);
-        res.setResult(userPage.getContent());
+        res.setResult(categoryPages.getContent());
 
-        List<ResCategoryDTO> categoryDTOs = userPage.getContent()
+        List<ResCategoryDTO> categoryDTOs = categoryPages.getContent()
                 .stream()
                 .map(this::convertToResCategoryDTO)
                 .toList();

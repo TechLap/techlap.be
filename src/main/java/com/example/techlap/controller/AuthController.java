@@ -33,10 +33,7 @@ public class AuthController {
 
         @PostMapping("/register")
         public ResponseEntity<Customer> register(@Valid @RequestBody Customer customer) throws Exception {
-
-                Customer newCustomer = this.authService.register(customer);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(newCustomer);
+                return ResponseEntity.status(HttpStatus.CREATED).body(this.authService.register(customer));
         }
 
         // External Login
