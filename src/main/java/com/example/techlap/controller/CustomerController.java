@@ -11,8 +11,18 @@ import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CustomerService;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
+import com.example.techlap.domain.request.ReqPasswordTokenDTO;
+
+import com.example.techlap.domain.respond.GenericResponse;
+import com.example.techlap.service.EmailService;
+import org.springframework.context.MessageSource;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+
+import java.util.Locale;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -25,6 +35,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/api/v1")
 public class CustomerController {
     private final CustomerService customerService;
+    private final EmailService emailService;
+    private final MessageSource messages;
 
     @PostMapping("/customers")
     @ApiMessage("Create a customer")
@@ -85,4 +97,30 @@ public class CustomerController {
     public ResponseEntity<ResCartDTO> getCart(@RequestBody String email) throws Exception {
         return null;
     }
+    @PostMapping("/customers/change-password/{id}")
+    @ApiMessage("Change password")
+    public ResponseEntity<Void> changePassword(@PathVariable("id") Long id,
+            @RequestBody @Valid ReqChangePasswordDTO changePasswordDTO) throws Exception {
+        this.customerService.changePassword(id, changePasswordDTO);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/customers/reset-password")
+    @ApiMessage("Reset password")
+    public ResponseEntity<GenericResponse> resetPassword(HttpServletRequest request,
+            @RequestParam("email") String email) throws Exception {
+        GenericResponse response = emailService.resetCustomerPassword(request, email);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/customers/change-password")
+    @ApiMessage("Change password")
+    public ResponseEntity<GenericResponse> changePasswordToken(Locale locale,
+            @Valid @RequestBody ReqPasswordTokenDTO reqPasswordDTO)
+            throws Exception {
+
+        GenericResponse response = emailService.saveCustomerPassword(locale, reqPasswordDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }

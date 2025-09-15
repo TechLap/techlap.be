@@ -15,4 +15,5 @@ public interface UserRepository extends JpaRepository<User, Long>, QuerydslPredi
 
     User findByRefreshTokenAndEmail(String refreshToken, String email);
 
+
 }

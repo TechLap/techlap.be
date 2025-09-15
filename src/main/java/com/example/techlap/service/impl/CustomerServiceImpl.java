@@ -8,12 +8,15 @@ import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.IdInvalidException;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
+import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.*;
 import com.example.techlap.service.CustomerService;
 import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.example.techlap.repository.PasswordResetTokenRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -38,6 +41,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE = "Customer not found";
@@ -261,4 +265,43 @@ public class CustomerServiceImpl implements CustomerService {
 //        return this.cartRepository.findBy()
         return null;
     }
+
+    @Override
+    public void changePassword(Long id, ReqChangePasswordDTO password) throws Exception {
+        Customer customerInDB = this.findCustomerByIdOrThrow(id);
+
+        if (checkIfValidOldPassword(customerInDB, password.getOldPassword())) {
+            if (password.getNewPassword().equals(password.getReNewPassword())) {
+                customerInDB.setPassword(passwordEncoder.encode(password.getNewPassword()));
+                customerRepository.save(customerInDB);
+            } else {
+                throw new IllegalArgumentException("New password and re-new password do not match");
+            }
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+    }
+
+    @Override
+    public boolean checkIfValidOldPassword(Customer customer, String oldPassword) {
+        return passwordEncoder.matches(oldPassword, customer.getPassword());
+    }
+
+    @Override
+    public void changeCustomerPassword(Customer customer, String password) {
+        customer.setPassword(passwordEncoder.encode(password));
+        customerRepository.save(customer);
+        passwordResetTokenRepository.deleteByCustomer(customer);
+        passwordResetTokenRepository.flush();
+    }
+
+    @Override
+    public Customer getCustomerByPasswordResetToken(String token) throws Exception {
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token);
+        Customer customer = passwordResetToken.getCustomer();
+        return customer;
+    }
+
+
+
 }
