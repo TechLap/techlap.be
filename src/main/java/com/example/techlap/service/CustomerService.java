@@ -1,5 +1,11 @@
 package com.example.techlap.service;
 
+import com.example.techlap.domain.Cart;
+import com.example.techlap.domain.CartDetail;
+import com.example.techlap.domain.User;
+import com.example.techlap.domain.request.ReqAddToCartDTO;
+import com.example.techlap.domain.request.ReqChangePasswordDTO;
+import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Customer;
@@ -7,7 +13,6 @@ import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
-import com.example.techlap.domain.request.ReqChangePasswordDTO;
 
 public interface CustomerService {
     // Create a customer
@@ -28,10 +33,19 @@ public interface CustomerService {
     // Delete a customer by id
     void delete(long id) throws Exception;
 
+    // Update a token
+    void updateCustomerToken(String token, String email) throws Exception;
+
+    Customer getCustomerByRefreshTokenAndEmail(String token, String email) throws Exception;
+
     // Convert entity to DTO
     ResCustomerDTO convertToResCustomerDTO(Customer customer);
+    ResCartDTO convertToResCartDTO(Cart cart);
 
-    ResPaginationDTO filterCustomers(Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer) throws Exception;
+    ResPaginationDTO filterCustomers (Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer) throws Exception;
+
+    Cart addToCart(ReqAddToCartDTO reqAddToCartDTO) throws Exception;
+    Cart getCartByEmail(String email) throws Exception;
 
     void changePassword(Long id, ReqChangePasswordDTO changePasswordDTO) throws Exception;
 

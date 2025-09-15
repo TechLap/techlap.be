@@ -1,22 +1,26 @@
 package com.example.techlap.service.impl;
 
-import com.example.techlap.domain.Customer;
-import com.example.techlap.domain.QCustomer;
+import com.example.techlap.domain.*;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
+import com.example.techlap.domain.request.ReqAddToCartDTO;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
+import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
-import com.example.techlap.repository.CustomerRepository;
+import com.example.techlap.repository.*;
 import com.example.techlap.service.CustomerService;
+import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.example.techlap.repository.PasswordResetTokenRepository;
 
 import lombok.AllArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -32,11 +36,16 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+    private final CartDetailRepository cartDetailRepository;
+    private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE = "Customer not found";
+    private static final String PRODUCT_NOT_FOUND_EXCEPTION_MESSAGE = "Product not found";
 
     private Customer findCustomerByIdOrThrow(long id) {
         return this.customerRepository
@@ -50,9 +59,39 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public ResCartDTO convertToResCartDTO(Cart cart) {
+        ResCartDTO dto = new ResCartDTO();
+        dto.setId(cart.getId());
+        dto.setSum(cart.getSum());
+
+        // Map customer
+        ResCustomerDTO customerDTO = modelMapper.map(cart.getCustomer(), ResCustomerDTO.class);
+        dto.setCustomer(customerDTO);
+
+        // Map cart details
+        List<ResCartDTO.CartDetailDTO> detailDTOs = cart.getCartDetails().stream()
+                .map(detail -> {
+                    ResCartDTO.CartDetailDTO d = new ResCartDTO.CartDetailDTO();
+                    d.setId(detail.getId());
+                    d.setQuantity(detail.getQuantity());
+                    d.setPrice(detail.getPrice());
+
+                    // Map product
+                    ResCartDTO.ProductDTO p = modelMapper.map(detail.getProduct(), ResCartDTO.ProductDTO.class);
+                    d.setProduct(p);
+
+                    return d;
+                })
+                .toList();
+
+        dto.setCartDetails(detailDTOs);
+        return dto;
+    }
+
+    @Override
     public Customer create(Customer customer) throws Exception {
         // Check Customername
-        if (this.customerRepository.existsByEmail(customer.getEmail()))
+        if (this.customerRepository.existsByEmail(customer.getEmail()) || this.userRepository.existsByEmail(customer.getEmail()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
         // Save hashPassword
@@ -86,6 +125,20 @@ public class CustomerServiceImpl implements CustomerService {
     public void delete(long id) throws Exception {
         Customer customer = this.findCustomerByIdOrThrow(id);
         this.customerRepository.delete(customer);
+    }
+
+    @Override
+    public void updateCustomerToken(String token, String email) throws Exception {
+        Customer currentCustomer = this.fetchCustomerByEmail(email);
+        if (currentCustomer != null) {
+            currentCustomer.setRefreshToken(token);
+            this.customerRepository.save(currentCustomer);
+        }
+    }
+
+    @Override
+    public Customer getCustomerByRefreshTokenAndEmail(String token, String email) throws Exception{
+        return this.customerRepository.findByRefreshTokenAndEmail(token, email);
     }
 
     @Override
@@ -155,6 +208,62 @@ public class CustomerServiceImpl implements CustomerService {
                 .toList();
         res.setResult(customerDTOs);
         return res;
+    }
+
+    @Override
+    public Cart addToCart (ReqAddToCartDTO reqAddToCartDTO) throws Exception {
+        // Lay thong tin cua customer ra kiem tra xem co gio hang chua?
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
+        Customer currentCustomerDB = this.fetchCustomerByEmail(email);
+
+        Cart cart = currentCustomerDB.getCart();
+        if (currentCustomerDB.getCart() == null) {
+            // Tao cart neu khong co cart
+            cart = new Cart();
+            cart.setCustomer(currentCustomerDB);
+            cart.setSum(0);
+            cart = this.cartRepository.save(cart);
+        }
+
+        // Kiem tra product_id co phu hop hay la khong
+        Product product = productRepository.findById(reqAddToCartDTO.getProductId())
+                .orElseThrow(() -> new IdInvalidException(PRODUCT_NOT_FOUND_EXCEPTION_MESSAGE));
+
+        // Kiem tra product co nam trong cart chua
+        CartDetail cartDetail = cartDetailRepository.findByCartAndProduct(cart, product);
+
+        if (cartDetail != null) {
+            // Neu khac null thi la san pham da co trong cart
+            cartDetail.setQuantity(cartDetail.getQuantity() + reqAddToCartDTO.getQuantity());
+        }else{
+            cartDetail = new CartDetail();
+            cartDetail.setProduct(product);
+            cartDetail.setQuantity(reqAddToCartDTO.getQuantity());
+            cartDetail.setCart(cart);
+            // Tinh price trên cart
+            BigDecimal price = product.getPrice();
+            BigDecimal discount = BigDecimal.valueOf(product.getDiscount())
+                    .divide(BigDecimal.valueOf(100)); // convert % về số thập phân
+
+            BigDecimal finalPrice = price.subtract(price.multiply(discount));
+
+            cartDetail.setPrice(finalPrice);
+        }
+
+        cartDetailRepository.save(cartDetail);
+
+        // Cap nhat so luong
+        int totalItems = cartDetailRepository.countByCart(cart);
+        cart.setSum(totalItems);
+        cartRepository.save(cart);
+
+        return cart;
+    }
+
+    @Override
+    public Cart getCartByEmail(String email) throws Exception {
+//        return this.cartRepository.findBy()
+        return null;
     }
 
     @Override

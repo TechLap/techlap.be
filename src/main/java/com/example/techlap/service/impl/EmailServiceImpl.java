@@ -24,7 +24,6 @@ import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import net.bytebuddy.description.type.TypeDescription.Generic;
 
 @Service
 @AllArgsConstructor

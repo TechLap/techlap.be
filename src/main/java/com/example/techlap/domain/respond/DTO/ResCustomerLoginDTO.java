@@ -1,21 +1,20 @@
 package com.example.techlap.domain.respond.DTO;
 
 import com.example.techlap.domain.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ResLoginDTO {
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class ResCustomerLoginDTO {
     @JsonProperty("access_token")
     private String accessToken;
-    private UserLogin user;
+    private CustomerLogin customer;
 
     @JsonProperty("refresh_token")
     private String refreshToken;
@@ -24,10 +23,11 @@ public class ResLoginDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class UserLogin {
+    public static class CustomerLogin {
         private long id;
         private String email;
         private String fullName;
+        private long totalCart;
         private Role role;
     }
 
@@ -35,15 +35,15 @@ public class ResLoginDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class UserGetAccount {
-        private UserLogin user;
+    public static class CustomerGetAccount {
+        private CustomerLogin customer;
     }
 
     @Getter
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class UserInsideToken {
+    public static class CustomerInsideToken {
         private long id;
         private String email;
         private String fullName;

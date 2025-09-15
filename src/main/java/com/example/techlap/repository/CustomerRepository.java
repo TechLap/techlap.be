@@ -1,8 +1,8 @@
 package com.example.techlap.repository;
 
 import com.example.techlap.domain.Customer;
-import com.mysql.cj.Query;
 
+import com.example.techlap.domain.User;
 import jakarta.validation.constraints.NotBlank;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +14,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Query
     boolean existsByEmail(String email);
 
     Customer findByEmail(@NotBlank(message = "email isn't blank") String email);
+
+    Customer findByRefreshTokenAndEmail(String refreshToken, String email);
 
 }
