@@ -94,8 +94,9 @@ public class CustomerController {
 
     @GetMapping("/customers/get-cart")
     @ApiMessage("Get a cart")
-    public ResponseEntity<ResCartDTO> getCart(@RequestBody String email) throws Exception {
-        return null;
+    public ResponseEntity<ResCartDTO> getCart() throws Exception {
+        Cart cart = this.customerService.getCartByCustomer();
+        return ResponseEntity.status(HttpStatus.OK).body(this.customerService.convertToResCartDTO(cart));
     }
     @PostMapping("/customers/change-password/{id}")
     @ApiMessage("Change password")

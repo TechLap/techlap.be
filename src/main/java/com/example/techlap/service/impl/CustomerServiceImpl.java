@@ -210,20 +210,25 @@ public class CustomerServiceImpl implements CustomerService {
         return res;
     }
 
+    private Cart createOrGetCartForCustomer (Customer customer) {
+        if (customer.getCart() == null) {
+            Cart cart = new Cart();
+            cart.setCustomer(customer);
+            cart.setSum(0);
+            cart = this.cartRepository.save(cart);
+            return cart;
+        }else {
+            return customer.getCart();
+        }
+    }
+
     @Override
     public Cart addToCart (ReqAddToCartDTO reqAddToCartDTO) throws Exception {
         // Lay thong tin cua customer ra kiem tra xem co gio hang chua?
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
         Customer currentCustomerDB = this.fetchCustomerByEmail(email);
 
-        Cart cart = currentCustomerDB.getCart();
-        if (currentCustomerDB.getCart() == null) {
-            // Tao cart neu khong co cart
-            cart = new Cart();
-            cart.setCustomer(currentCustomerDB);
-            cart.setSum(0);
-            cart = this.cartRepository.save(cart);
-        }
+        Cart cart = createOrGetCartForCustomer(currentCustomerDB);
 
         // Kiem tra product_id co phu hop hay la khong
         Product product = productRepository.findById(reqAddToCartDTO.getProductId())
@@ -232,25 +237,31 @@ public class CustomerServiceImpl implements CustomerService {
         // Kiem tra product co nam trong cart chua
         CartDetail cartDetail = cartDetailRepository.findByCartAndProduct(cart, product);
 
-        if (cartDetail != null) {
-            // Neu khac null thi la san pham da co trong cart
-            cartDetail.setQuantity(cartDetail.getQuantity() + reqAddToCartDTO.getQuantity());
-        }else{
+        if (cartDetail == null) {
+            // Nếu chưa có thì chỉ cho phép thêm mới (isUpdate = false)
+            if (reqAddToCartDTO.isUpdate()) {
+                throw new Exception("Product not found in cart");
+            }
             cartDetail = new CartDetail();
+            cartDetail.setCart(cart);
             cartDetail.setProduct(product);
             cartDetail.setQuantity(reqAddToCartDTO.getQuantity());
-            cartDetail.setCart(cart);
-            // Tinh price trên cart
-            BigDecimal price = product.getPrice();
-            BigDecimal discount = BigDecimal.valueOf(product.getDiscount())
-                    .divide(BigDecimal.valueOf(100)); // convert % về số thập phân
-
-            BigDecimal finalPrice = price.subtract(price.multiply(discount));
-
-            cartDetail.setPrice(finalPrice);
+        } else {
+            // Nếu đã có
+            if (reqAddToCartDTO.isUpdate()) {
+                cartDetail.setQuantity(reqAddToCartDTO.getQuantity()); // Set trực tiếp
+            } else {
+                cartDetail.setQuantity(cartDetail.getQuantity() + reqAddToCartDTO.getQuantity()); // Cộng thêm
+            }
         }
 
-        cartDetailRepository.save(cartDetail);
+        // Tính đơn giá sau giảm
+        BigDecimal price = product.getPrice();
+        BigDecimal discount = BigDecimal.valueOf(product.getDiscount())
+                .divide(BigDecimal.valueOf(100));
+        BigDecimal finalPrice = price.subtract(price.multiply(discount));
+
+        cartDetail.setPrice(finalPrice);
 
         // Cap nhat so luong
         int totalItems = cartDetailRepository.countByCart(cart);
@@ -302,6 +313,11 @@ public class CustomerServiceImpl implements CustomerService {
         return customer;
     }
 
-
+    @Override
+    public Cart getCartByCustomer() throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
+        Customer currentCustomerDB = this.fetchCustomerByEmail(email);
+        return createOrGetCartForCustomer(currentCustomerDB);
+    }
 
 }

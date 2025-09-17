@@ -8,4 +8,5 @@ import lombok.Setter;
 public class ReqAddToCartDTO {
     private long productId;
     private int quantity;
+    private boolean isUpdate;
 }

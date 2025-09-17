@@ -1,8 +1,6 @@
 package com.example.techlap.service;
 
 import com.example.techlap.domain.Cart;
-import com.example.techlap.domain.CartDetail;
-import com.example.techlap.domain.User;
 import com.example.techlap.domain.request.ReqAddToCartDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
@@ -55,4 +53,5 @@ public interface CustomerService {
 
     Customer getCustomerByPasswordResetToken(String token) throws Exception;
 
+    Cart getCartByCustomer() throws Exception;
 }
