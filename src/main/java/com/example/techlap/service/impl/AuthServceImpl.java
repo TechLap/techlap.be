@@ -10,11 +10,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.request.ReqLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
+import com.example.techlap.domain.respond.DTO.ResLoginDTO.UserLogin;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.repository.CustomerRepository;
@@ -43,7 +48,15 @@ public class AuthServceImpl implements AuthService {
     public ResLoginDTO internalLogin(ReqLoginDTO loginDTO) throws Exception {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDTO.getUsername(), loginDTO.getPassword());
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        final Authentication authentication;
+        try {
+            authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        } catch (BadCredentialsException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -51,24 +64,23 @@ public class AuthServceImpl implements AuthService {
 
         User inDBUser = this.userService.fetchUserByEmail(loginDTO.getUsername());
         if (inDBUser != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(inDBUser.getRole().getId(), inDBUser.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     inDBUser.getId(),
                     inDBUser.getEmail(),
                     inDBUser.getFullName(),
-                    inDBUser.getRole());
+                    roleDTO);
             res.setUser(userLogin);
         }
-        // create accessToken
+
+        // tokens
         String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
         res.setAccessToken(access_token);
 
-        // create refreshToken
         String refresh_token = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
         res.setRefreshToken(refresh_token);
-        // update user
-        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
 
-        // update user
+        // update refresh token once
         this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
 
         return res;
@@ -79,14 +91,22 @@ public class AuthServceImpl implements AuthService {
     public ResCustomerLoginDTO externalLogin(ReqLoginDTO loginDTO) throws Exception {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDTO.getUsername(), loginDTO.getPassword());
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        final Authentication authentication;
+        try {
+            authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        } catch (BadCredentialsException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication failed");
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         ResCustomerLoginDTO res = new ResCustomerLoginDTO();
 
         Customer inDBCustomer = this.customerService.fetchCustomerByEmail(loginDTO.getUsername());
-        long totalCart = inDBCustomer.getCart() != null ?inDBCustomer.getCart().getSum():0;
+        long totalCart = (inDBCustomer != null && inDBCustomer.getCart() != null) ? inDBCustomer.getCart().getSum() : 0;
         if (inDBCustomer != null) {
             ResCustomerLoginDTO.CustomerLogin customerLogin = new ResCustomerLoginDTO.CustomerLogin(
                     inDBCustomer.getId(),
@@ -96,17 +116,15 @@ public class AuthServceImpl implements AuthService {
                     inDBCustomer.getRole());
             res.setCustomer(customerLogin);
         }
-        // create accessToken
+
+        // tokens
         String access_token = this.securityUtil.createAccessTokenForCustomer(authentication.getName(), res);
         res.setAccessToken(access_token);
 
-        // create refreshToken
         String refresh_token = this.securityUtil.createRefreshTokenForCustomer(loginDTO.getUsername(), res);
         res.setRefreshToken(refresh_token);
-        // update user
-        this.customerService.updateCustomerToken(refresh_token, loginDTO.getUsername());
 
-        // update user
+        // update refresh token once
         this.customerService.updateCustomerToken(refresh_token, loginDTO.getUsername());
 
         return res;
@@ -142,11 +160,13 @@ public class AuthServceImpl implements AuthService {
         ResLoginDTO res = new ResLoginDTO();
         User currentUserDB = this.userService.fetchUserByEmail(email);
         if (currentUserDB != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(currentUserDB.getRole().getId(),
+                    currentUserDB.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
                     currentUserDB.getFullName(),
-                    currentUserDB.getRole());
+                    roleDTO);
             res.setUser(userLogin);
         }
 
@@ -181,7 +201,7 @@ public class AuthServceImpl implements AuthService {
         // issue new token/set refresh token as cookies
         ResCustomerLoginDTO res = new ResCustomerLoginDTO();
         Customer currentCustomerDB = this.customerService.fetchCustomerByEmail(email);
-        long totalCart = currentCustomerDB.getCart() != null ?currentCustomerDB.getCart().getSum():0;
+        long totalCart = currentCustomerDB.getCart() != null ? currentCustomerDB.getCart().getSum() : 0;
         if (currentCustomerDB != null) {
             ResCustomerLoginDTO.CustomerLogin customerLogin = new ResCustomerLoginDTO.CustomerLogin(
                     currentCustomerDB.getId(),
@@ -217,10 +237,12 @@ public class AuthServceImpl implements AuthService {
         ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
 
         if (currentUserDB != null) {
+            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(currentUserDB.getRole().getId(),
+                    currentUserDB.getRole().getName());
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
             userLogin.setFullName(currentUserDB.getFullName());
-            userLogin.setRole(currentUserDB.getRole());
+            userLogin.setRole(roleDTO);
 
             userGetAccount.setUser(userLogin);
             return userGetAccount;

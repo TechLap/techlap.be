@@ -17,6 +17,7 @@ public class ResLoginDTO {
     private String accessToken;
     private UserLogin user;
 
+    @JsonIgnore
     @JsonProperty("refresh_token")
     private String refreshToken;
 
@@ -28,7 +29,16 @@ public class ResLoginDTO {
         private long id;
         private String email;
         private String fullName;
-        private Role role;
+        private RoleDTO role;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class RoleDTO {
+            private long id;
+            private String name;
+        }
     }
 
     @Getter
