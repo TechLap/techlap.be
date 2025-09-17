@@ -46,9 +46,8 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<ResCustomerLoginDTO> login(@Valid @RequestBody ReqLoginDTO body) throws Exception {
                 ResCustomerLoginDTO res = this.authService.externalLogin(body);
-                String refreshToken = this.securityUtil.createRefreshTokenForCustomer(body.getUsername(), res);
                 ResponseCookie resCookies = ResponseCookie
-                                .from("refresh_token", refreshToken)
+                                .from("refresh_token", res.getRefreshToken())
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
@@ -64,9 +63,8 @@ public class AuthController {
         @PostMapping("/admin/login")
         public ResponseEntity<ResLoginDTO> internalLogin(@Valid @RequestBody ReqLoginDTO body) throws Exception {
                 ResLoginDTO res = this.authService.internalLogin(body);
-                String refreshToken = this.securityUtil.createRefreshToken(body.getUsername(), res);
                 ResponseCookie resCookies = ResponseCookie
-                                .from("refresh_token", refreshToken)
+                                .from("refresh_token", res.getRefreshToken())
                                 .httpOnly(true)
                                 .secure(true)
                                 .path("/")
@@ -113,21 +111,22 @@ public class AuthController {
 
         @GetMapping("/auth/customers/refresh")
         @ApiMessage("Get Customer by refresh token")
-        public ResponseEntity<ResCustomerLoginDTO> getCustomerRefreshToken(@CookieValue(name = "refresh_token") String refresh_token)
-                throws Exception {
+        public ResponseEntity<ResCustomerLoginDTO> getCustomerRefreshToken(
+                        @CookieValue(name = "refresh_token") String refresh_token)
+                        throws Exception {
                 ResCustomerLoginDTO res = this.authService.getCustomerRefreshToken(refresh_token);
                 // set cookie
                 ResponseCookie resCookies = ResponseCookie
-                        .from("refresh_token", res.getRefreshToken())
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .maxAge(jwtConstants.refreshTokenExpiration)
-                        .build();
+                                .from("refresh_token", res.getRefreshToken())
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(jwtConstants.refreshTokenExpiration)
+                                .build();
 
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.SET_COOKIE, resCookies.toString())
-                        .body(res);
+                                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                                .body(res);
         }
 
         @PostMapping("/auth/logout")
