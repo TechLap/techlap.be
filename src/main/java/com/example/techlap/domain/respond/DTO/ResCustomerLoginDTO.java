@@ -1,6 +1,7 @@
 package com.example.techlap.domain.respond.DTO;
 
 import com.example.techlap.domain.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class ResCustomerLoginDTO {
     private String accessToken;
     private CustomerLogin customer;
 
+    @JsonIgnore
     @JsonProperty("refresh_token")
     private String refreshToken;
 
