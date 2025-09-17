@@ -1,5 +1,6 @@
 package com.example.techlap.domain.respond.DTO;
 
+import java.time.Instant;
 import java.util.List;
 
 import lombok.Data;
@@ -14,6 +15,8 @@ public class ResRoleDTO {
     private String description;
     private List<PermissionDTO> permissions;
     private List<UserDTO> users;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @Getter
     @Setter
