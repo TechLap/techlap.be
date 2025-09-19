@@ -8,7 +8,9 @@ import com.example.techlap.constant.JwtConstants;
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.request.ReqLoginDTO;
+import com.example.techlap.domain.request.ReqRegisterCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
+import com.example.techlap.domain.respond.DTO.ResRegisterCustomerDTO;
 import com.example.techlap.service.AuthService;
 import com.example.techlap.util.SecurityUtil;
 
@@ -35,11 +37,13 @@ public class AuthController {
         private final SecurityUtil securityUtil;
 
         @PostMapping("/register")
-        public ResponseEntity<Customer> register(@Valid @RequestBody Customer customer) throws Exception {
+        public ResponseEntity<ResRegisterCustomerDTO> register(@Valid @RequestBody Customer customer)
+                        throws Exception {
 
                 Customer newCustomer = this.authService.register(customer);
 
-                return ResponseEntity.status(HttpStatus.CREATED).body(newCustomer);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(this.authService.convertToResRegisterCustomerDTO(newCustomer));
         }
 
         // External Login
