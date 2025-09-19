@@ -18,6 +18,7 @@ import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.example.techlap.repository.PasswordResetTokenRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
@@ -260,8 +261,8 @@ public class CustomerServiceImpl implements CustomerService {
         BigDecimal discount = BigDecimal.valueOf(product.getDiscount())
                 .divide(BigDecimal.valueOf(100));
         BigDecimal finalPrice = price.subtract(price.multiply(discount));
-
-        cartDetail.setPrice(finalPrice);
+        BigDecimal totalPrice = finalPrice.multiply(BigDecimal.valueOf(cartDetail.getQuantity()));
+        cartDetail.setPrice(totalPrice);
 
         // Cap nhat so luong
         int totalItems = cartDetailRepository.countByCart(cart);
@@ -320,4 +321,34 @@ public class CustomerServiceImpl implements CustomerService {
         return createOrGetCartForCustomer(currentCustomerDB);
     }
 
+    @Override
+    @Transactional
+    public void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception {
+        // 1. Tìm customer
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new Exception("Customer not found"));
+
+        // 2. Lấy cart của customer
+        Cart cart = cartRepository.findByCustomer(customer);
+        if (cart == null) {
+            throw new Exception("Cart not found for this customer");
+        }
+
+        // 3. Lấy cartDetail trong cart
+        CartDetail cartDetail = cartDetailRepository.findById(cartDetailId)
+                .orElseThrow(() -> new Exception("CartDetail not found"));
+
+        // 4. Kiểm tra cartDetail có thuộc cart này không
+        if (cartDetail.getCart().getId() == (cart.getId())) {
+            throw new Exception("CartDetail does not belong to this customer's cart");
+        }
+
+        // 5. Thực hiện xóa
+        cartDetailRepository.delete(cartDetail);
+
+        // 6. Cập nhật lại tổng số lượng trong cart (nếu có field sum)
+        int totalItems = cartDetailRepository.countByCart(cart);
+        cart.setSum(totalItems);
+        cartRepository.save(cart);
+    }
 }

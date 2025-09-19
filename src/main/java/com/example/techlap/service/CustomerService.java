@@ -54,4 +54,6 @@ public interface CustomerService {
     Customer getCustomerByPasswordResetToken(String token) throws Exception;
 
     Cart getCartByCustomer() throws Exception;
+
+    void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception;
 }
