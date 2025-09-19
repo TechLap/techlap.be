@@ -5,14 +5,11 @@ import com.example.techlap.domain.CartDetail;
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
-import com.example.techlap.domain.request.ReqAddToCartDTO;
-import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
+import com.example.techlap.domain.request.*;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.service.CustomerService;
-import com.example.techlap.domain.request.ReqChangePasswordDTO;
-import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 
 import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.service.EmailService;
@@ -94,8 +91,9 @@ public class CustomerController {
 
     @GetMapping("/customers/get-cart")
     @ApiMessage("Get a cart")
-    public ResponseEntity<ResCartDTO> getCart(@RequestBody String email) throws Exception {
-        return null;
+    public ResponseEntity<ResCartDTO> getCart() throws Exception {
+        Cart cart = this.customerService.getCartByCustomer();
+        return ResponseEntity.status(HttpStatus.OK).body(this.customerService.convertToResCartDTO(cart));
     }
     @PostMapping("/customers/change-password/{id}")
     @ApiMessage("Change password")
@@ -123,4 +121,10 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @DeleteMapping("/customers/remove-cart-detail")
+    @ApiMessage("Delete A CartDetail")
+    public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO) throws Exception {
+        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCustomerId(), reqRemoveCartDetailDTO.getCartDetailId());
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

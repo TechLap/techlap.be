@@ -1,6 +1,7 @@
 package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.respond.DTO.ResCustomerLoginDTO;
+import com.example.techlap.exception.ResourceNotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -40,6 +41,7 @@ public class AuthServceImpl implements AuthService {
     private final CustomerService customerService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
+    private static final String RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE = "Resource not found";
 
     // Internal Login
     @Override
@@ -243,8 +245,10 @@ public class AuthServceImpl implements AuthService {
             userLogin.setRole(roleDTO);
 
             userGetAccount.setUser(userLogin);
+            return userGetAccount;
+        }else {
+            throw new ResourceNotFoundException(RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE);
         }
-        return userGetAccount;
     }
 
     @Override
@@ -263,8 +267,10 @@ public class AuthServceImpl implements AuthService {
             customerLogin.setRole(currentCustomerDB.getRole());
 
             customerGetAccount.setCustomer(customerLogin);
+            return customerGetAccount;
+        }else {
+            throw new ResourceNotFoundException(RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE);
         }
-        return customerGetAccount;
     }
 
     @Override
