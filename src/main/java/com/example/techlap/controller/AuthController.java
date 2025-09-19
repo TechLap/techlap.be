@@ -145,4 +145,21 @@ public class AuthController {
                 return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
                                 .body(null);
         }
+
+        @PostMapping("/auth/customers/logout")
+        @ApiMessage("Logout Customer")
+        public ResponseEntity<Void> logoutForCustomer() throws Exception {
+                this.authService.logoutForCustomer();
+                // remove refresh token
+                ResponseCookie deleteSpringCookie = ResponseCookie
+                                .from("refresh_token", null)
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(0)
+                                .build();
+
+                return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
+                                .body(null);
+        }
 }

@@ -288,4 +288,19 @@ public class AuthServceImpl implements AuthService {
         return null;
     }
 
+    @Override
+    public Void logoutForCustomer() throws Exception {
+        String email = this.securityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+
+        if (email.equals("")) {
+            throw new IdInvalidException("Access Token không hợp lệ");
+        }
+
+        // Update refresh token = null
+        this.customerService.updateCustomerToken(email, email);
+
+        return null;
+    }
+
 }
