@@ -124,7 +124,7 @@ public class CustomerController {
     @DeleteMapping("/customers/remove-cart-detail")
     @ApiMessage("Delete A CartDetail")
     public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO) throws Exception {
-        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCustomerId(), reqRemoveCartDetailDTO.getCartDetailId());
+        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(), reqRemoveCartDetailDTO.getCustomerId());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

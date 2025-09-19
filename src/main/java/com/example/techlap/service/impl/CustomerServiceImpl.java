@@ -264,6 +264,8 @@ public class CustomerServiceImpl implements CustomerService {
         BigDecimal totalPrice = finalPrice.multiply(BigDecimal.valueOf(cartDetail.getQuantity()));
         cartDetail.setPrice(totalPrice);
 
+        this.cartDetailRepository.save(cartDetail);
+
         // Cap nhat so luong
         int totalItems = cartDetailRepository.countByCart(cart);
         cart.setSum(totalItems);
@@ -339,7 +341,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new Exception("CartDetail not found"));
 
         // 4. Kiểm tra cartDetail có thuộc cart này không
-        if (cartDetail.getCart().getId() == (cart.getId())) {
+        if (cartDetail.getCart().getId() != (cart.getId())) {
             throw new Exception("CartDetail does not belong to this customer's cart");
         }
 

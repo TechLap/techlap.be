@@ -20,4 +20,5 @@ public interface AuthService {
     ResCustomerLoginDTO.CustomerGetAccount getCustomer() throws Exception;
 
     Void logout() throws Exception;
+    Void logoutForCustomer() throws Exception;
 }
