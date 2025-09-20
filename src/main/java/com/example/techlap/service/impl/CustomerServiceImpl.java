@@ -18,7 +18,6 @@ import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.example.techlap.repository.PasswordResetTokenRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
@@ -32,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -224,6 +224,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Cart addToCart (ReqAddToCartDTO reqAddToCartDTO) throws Exception {
         // Lay thong tin cua customer ra kiem tra xem co gio hang chua?
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
@@ -324,7 +325,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @Transactional
+    @Transactional (rollbackFor = Exception.class)
     public void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception {
         // 1. Tìm customer
         Customer customer = customerRepository.findById(customerId)
