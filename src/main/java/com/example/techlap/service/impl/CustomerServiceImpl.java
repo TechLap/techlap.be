@@ -9,14 +9,12 @@ import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
-import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
 import com.example.techlap.repository.*;
 import com.example.techlap.service.CustomerService;
 import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.example.techlap.repository.PasswordResetTokenRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -41,6 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartRepository cartRepository;
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
@@ -92,9 +91,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer create(Customer customer) throws Exception {
         // Check Customername
-        if (this.customerRepository.existsByEmail(customer.getEmail()) || this.userRepository.existsByEmail(customer.getEmail()))
+        if (this.customerRepository.existsByEmail(customer.getEmail())
+                || this.userRepository.existsByEmail(customer.getEmail()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
-
+        Role customerRole = roleRepository.findByName("CUSTOMER");
+        if (customerRole == null) {
+            throw new ResourceNotFoundException("Role CUSTOMER not found");
+        }
+        customer.setRole(customerRole);
         // Save hashPassword
         customer.setPassword(passwordEncoder.encode(customer.getPassword()));
 
@@ -138,7 +142,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer getCustomerByRefreshTokenAndEmail(String token, String email) throws Exception{
+    public Customer getCustomerByRefreshTokenAndEmail(String token, String email) throws Exception {
         return this.customerRepository.findByRefreshTokenAndEmail(token, email);
     }
 
@@ -211,14 +215,14 @@ public class CustomerServiceImpl implements CustomerService {
         return res;
     }
 
-    private Cart createOrGetCartForCustomer (Customer customer) {
+    private Cart createOrGetCartForCustomer(Customer customer) {
         if (customer.getCart() == null) {
             Cart cart = new Cart();
             cart.setCustomer(customer);
             cart.setSum(0);
             cart = this.cartRepository.save(cart);
             return cart;
-        }else {
+        } else {
             return customer.getCart();
         }
     }
@@ -277,7 +281,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Cart getCartByEmail(String email) throws Exception {
-//        return this.cartRepository.findBy()
+        // return this.cartRepository.findBy()
         return null;
     }
 

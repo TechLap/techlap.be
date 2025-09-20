@@ -2,6 +2,8 @@ package com.example.techlap.service.impl;
 
 import com.example.techlap.domain.respond.DTO.ResCustomerLoginDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,18 +18,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.Role;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.request.ReqLoginDTO;
+import com.example.techlap.domain.request.ReqRegisterCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
+import com.example.techlap.domain.respond.DTO.ResRegisterCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO.UserLogin;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.repository.CustomerRepository;
+import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.AuthService;
 import com.example.techlap.service.CustomerService;
 import com.example.techlap.service.UserService;
 import com.example.techlap.util.SecurityUtil;
 
+import ch.qos.logback.core.model.Model;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -39,6 +46,8 @@ public class AuthServceImpl implements AuthService {
     private final SecurityUtil securityUtil;
     private final UserService userService;
     private final CustomerService customerService;
+    private final ModelMapper modelMapper;
+    private final RoleRepository roleRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE = "Resource not found";
@@ -133,15 +142,25 @@ public class AuthServceImpl implements AuthService {
     @Override
     public Customer register(Customer customer) throws Exception {
 
-        // Check Username
+        // Check Email exists
         if (this.customerRepository.existsByEmail(customer.getEmail()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
+        Role customerRole = roleRepository.findByName("CUSTOMER");
+        if (customerRole == null) {
+            throw new ResourceNotFoundException("Role CUSTOMER not found");
+        }
+        customer.setRole(customerRole);
         // Save hashPassword
         customer.setPassword(passwordEncoder.encode(customer.getPassword()));
 
         return this.customerRepository.save(customer);
 
+    }
+
+    @Override
+    public ResRegisterCustomerDTO convertToResRegisterCustomerDTO(Customer customer) throws Exception {
+        return modelMapper.map(customer, ResRegisterCustomerDTO.class);
     }
 
     @Override
@@ -246,7 +265,7 @@ public class AuthServceImpl implements AuthService {
 
             userGetAccount.setUser(userLogin);
             return userGetAccount;
-        }else {
+        } else {
             throw new ResourceNotFoundException(RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE);
         }
     }
@@ -268,7 +287,7 @@ public class AuthServceImpl implements AuthService {
 
             customerGetAccount.setCustomer(customerLogin);
             return customerGetAccount;
-        }else {
+        } else {
             throw new ResourceNotFoundException(RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE);
         }
     }
@@ -298,7 +317,7 @@ public class AuthServceImpl implements AuthService {
         }
 
         // Update refresh token = null
-        this.customerService.updateCustomerToken(email, email);
+        this.customerService.updateCustomerToken(null, email);
 
         return null;
     }
