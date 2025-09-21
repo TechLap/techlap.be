@@ -3,6 +3,7 @@ package com.example.techlap.service.impl;
 import com.example.techlap.domain.*;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqAddToCartDTO;
+import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
@@ -27,8 +28,10 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -286,19 +289,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void changePassword(Long id, ReqChangePasswordDTO password) throws Exception {
-        Customer customerInDB = this.findCustomerByIdOrThrow(id);
+    public void adminChangePassword(long id, ReqAdminChangePasswordDTO changePasswordDTO) throws Exception {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE));
 
-        if (checkIfValidOldPassword(customerInDB, password.getOldPassword())) {
-            if (password.getNewPassword().equals(password.getReNewPassword())) {
-                customerInDB.setPassword(passwordEncoder.encode(password.getNewPassword()));
-                customerRepository.save(customerInDB);
-            } else {
-                throw new IllegalArgumentException("New password and re-new password do not match");
-            }
-        } else {
-            throw new IllegalArgumentException("Old password is incorrect");
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
+        customer.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        customerRepository.save(customer);
     }
 
     @Override

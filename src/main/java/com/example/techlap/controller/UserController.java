@@ -3,6 +3,7 @@ package com.example.techlap.controller;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.annotation.ApiMessage;
 import com.example.techlap.domain.criteria.CriteriaFilterUser;
+import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
@@ -85,8 +86,8 @@ public class UserController {
     @PostMapping("/users/change-password/{id}")
     @ApiMessage("Change password")
     public ResponseEntity<Void> changePassword(@PathVariable("id") Long id,
-            @RequestBody @Valid ReqChangePasswordDTO changePasswordDTO) throws Exception {
-        this.userService.changePassword(id, changePasswordDTO);
+            @RequestBody @Valid ReqAdminChangePasswordDTO changePasswordDTO) throws Exception {
+        this.userService.adminChangePassword(id, changePasswordDTO);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -106,6 +107,15 @@ public class UserController {
 
         GenericResponse response = emailService.saveUserPassword(locale, reqPasswordDTO);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/users/me/change-password")
+    @ApiMessage("Self change password")
+    public ResponseEntity<Void> changeMyPassword(@RequestBody @Valid ReqChangePasswordDTO dto) throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UsernameNotFoundException("No authenticated user"));
+        userService.changePasswordByEmail(email, dto);
+        return ResponseEntity.ok().build();
     }
 
 }

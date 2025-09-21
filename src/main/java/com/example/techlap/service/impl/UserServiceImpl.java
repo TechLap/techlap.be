@@ -10,14 +10,17 @@ import com.example.techlap.repository.CustomerRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.PasswordResetToken;
 import com.example.techlap.domain.QUser;
 import com.example.techlap.domain.criteria.CriteriaFilterUser;
+import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
@@ -55,7 +58,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public User create(User user) throws Exception {
         // Check Username
-        if (this.userRepository.existsByEmail(user.getEmail()) || this.customerRepository.existsByEmail(user.getEmail()))
+        if (this.userRepository.existsByEmail(user.getEmail())
+                || this.customerRepository.existsByEmail(user.getEmail()))
             throw new ResourceAlreadyExistsException(EMAIL_EXISTS_EXCEPTION_MESSAGE);
 
         // Save hashPassword
@@ -193,19 +197,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(Long id, ReqChangePasswordDTO password) throws Exception {
-        User userInDB = this.findUserByIdOrThrow(id);
+    public void adminChangePassword(Long id, ReqAdminChangePasswordDTO password) throws Exception {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_EXCEPTION_MESSAGE));
 
-        if (checkIfValidOldPassword(userInDB, password.getOldPassword())) {
-            if (password.getNewPassword().equals(password.getReNewPassword())) {
-                userInDB.setPassword(passwordEncoder.encode(password.getNewPassword()));
-                userRepository.save(userInDB);
-            } else {
-                throw new IllegalArgumentException("New password and re-new password do not match");
-            }
-        } else {
-            throw new IllegalArgumentException("Old password is incorrect");
+        if (!password.getNewPassword().equals(password.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
+        user.setPassword(passwordEncoder.encode(password.getNewPassword()));
+        userRepository.save(user);
     }
 
     @Override
@@ -226,6 +226,24 @@ public class UserServiceImpl implements UserService {
         PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(token);
         User user = passwordResetToken.getUser();
         return user;
+    }
+
+    @Override
+    public void changePasswordByEmail(String email, ReqChangePasswordDTO dto) {
+        User u = userRepository.findByEmail(email);
+        if (u == null) {
+            throw new ResourceNotFoundException(USER_NOT_FOUND_EXCEPTION_MESSAGE);
+        }
+        if (checkIfValidOldPassword(u, dto.getOldPassword())) {
+            if (dto.getNewPassword().equals(dto.getReNewPassword())) {
+                u.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                userRepository.save(u);
+            } else {
+                throw new IllegalArgumentException("New password and re-new password do not match");
+            }
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
     }
 
 }
