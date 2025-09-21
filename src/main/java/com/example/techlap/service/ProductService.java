@@ -1,5 +1,7 @@
 package com.example.techlap.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Product;
@@ -30,5 +32,11 @@ public interface ProductService {
     ResProductDTO convertToResProductDTO(Product product) throws Exception;
 
     ResPaginationDTO filterProducts(Pageable pageable, CriteriaFilterProduct criteriaFilterProduct) throws Exception;
+
+    // Fetch top 5 latest products
+    List<Product> fetchAllLatestProducts() throws Exception;
+
+    // Fetch top 5 best-selling products
+    List<Product> fetchAllBestSellingProducts() throws Exception;
 
 }
