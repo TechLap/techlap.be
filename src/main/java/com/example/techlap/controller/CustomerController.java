@@ -95,11 +95,12 @@ public class CustomerController {
         Cart cart = this.customerService.getCartByCustomer();
         return ResponseEntity.status(HttpStatus.OK).body(this.customerService.convertToResCartDTO(cart));
     }
+
     @PostMapping("/customers/change-password/{id}")
     @ApiMessage("Change password")
     public ResponseEntity<Void> changePassword(@PathVariable("id") Long id,
-            @RequestBody @Valid ReqChangePasswordDTO changePasswordDTO) throws Exception {
-        this.customerService.changePassword(id, changePasswordDTO);
+            @RequestBody @Valid ReqAdminChangePasswordDTO changePasswordDTO) throws Exception {
+        this.customerService.adminChangePassword(id, changePasswordDTO);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -123,8 +124,10 @@ public class CustomerController {
 
     @DeleteMapping("/customers/remove-cart-detail")
     @ApiMessage("Delete A CartDetail")
-    public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO) throws Exception {
-        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(), reqRemoveCartDetailDTO.getCustomerId());
+    public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO)
+            throws Exception {
+        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(),
+                reqRemoveCartDetailDTO.getCustomerId());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
