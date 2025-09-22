@@ -59,4 +59,5 @@ public interface CustomerService {
     Cart getCartByCustomer() throws Exception;
 
     void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception;
+    void changePasswordByEmail(String email, ReqChangePasswordDTO dto) throws Exception;
 }

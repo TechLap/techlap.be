@@ -357,4 +357,22 @@ public class CustomerServiceImpl implements CustomerService {
         cart.setSum(totalItems);
         cartRepository.save(cart);
     }
+
+    @Override
+    public void changePasswordByEmail(String email, ReqChangePasswordDTO dto) {
+        Customer u = customerRepository.findByEmail(email);
+        if (u == null) {
+            throw new ResourceNotFoundException("CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE");
+        }
+        if (checkIfValidOldPassword(u, dto.getOldPassword())) {
+            if (dto.getNewPassword().equals(dto.getReNewPassword())) {
+                u.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                customerRepository.save(u);
+            } else {
+                throw new IllegalArgumentException("New password and re-new password do not match");
+            }
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+    }
 }

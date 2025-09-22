@@ -13,6 +13,8 @@ import com.example.techlap.service.CustomerService;
 
 import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.service.EmailService;
+import com.example.techlap.util.SecurityUtil;
+
 import org.springframework.context.MessageSource;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +26,8 @@ import java.util.Locale;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @AllArgsConstructor
@@ -129,5 +131,14 @@ public class CustomerController {
         this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(),
                 reqRemoveCartDetailDTO.getCustomerId());
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/customers/me/change-password")
+    @ApiMessage("Self change password")
+    public ResponseEntity<Void> changeMyPassword(@RequestBody @Valid ReqChangePasswordDTO dto) throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UsernameNotFoundException("No authenticated user"));
+        customerService.changePasswordByEmail(email, dto);
+        return ResponseEntity.ok().build();
     }
 }
