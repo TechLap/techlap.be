@@ -141,4 +141,14 @@ public class CustomerController {
         customerService.changePasswordByEmail(email, dto);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/customers/history-orders")
+    @ApiMessage("Get history orders by customer id")
+    public ResponseEntity<ResPaginationDTO> getOrdersByCustomerId(Pageable pageable) throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UsernameNotFoundException("No authenticated user"));
+        Customer customer = customerService.fetchCustomerByEmail(email);
+        ResPaginationDTO res = this.customerService.getOrdersByCustomerId(pageable, customer.getId());
+        return ResponseEntity.ok(res);
+    }
 }

@@ -7,6 +7,7 @@ import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResOrderDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
@@ -43,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final RoleRepository roleRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
@@ -232,7 +234,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Cart addToCart (ReqAddToCartDTO reqAddToCartDTO) throws Exception {
+    public Cart addToCart(ReqAddToCartDTO reqAddToCartDTO) throws Exception {
         // Lay thong tin cua customer ra kiem tra xem co gio hang chua?
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
         Customer currentCustomerDB = this.fetchCustomerByEmail(email);
@@ -328,7 +330,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @Transactional (rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception {
         // 1. Tìm customer
         Customer customer = customerRepository.findById(customerId)
@@ -374,5 +376,72 @@ public class CustomerServiceImpl implements CustomerService {
         } else {
             throw new IllegalArgumentException("Old password is incorrect");
         }
+    }
+
+    private ResOrderDTO convertToResOrderDTO(Order order) {
+        ResOrderDTO dto = new ResOrderDTO();
+        dto.setId(order.getId());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setNote(order.getNote());
+        dto.setStatus(order.getStatus());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setCreatedAt(order.getCreatedAt().toString());
+        dto.setUpdatedAt(order.getUpdatedAt() != null ? order.getUpdatedAt().toString() : null);
+        dto.setCreatedBy(order.getCreatedBy());
+        dto.setUpdatedBy(order.getUpdatedBy() != null ? order.getUpdatedBy().toString() : null);
+        dto.setTotalPrice(order.getTotalPrice().toString());
+
+        // Map customer
+        ResCustomerDTO customerDTO = modelMapper.map(order.getCustomer(), ResCustomerDTO.class);
+        dto.setCustomer(customerDTO);
+
+        // Map order details
+        List<ResOrderDTO.ResOrderDetailDTO> orderDetailDTOs = order.getOrderDetails().stream()
+                .map(detail -> {
+                    ResOrderDTO.ResOrderDetailDTO d = new ResOrderDTO.ResOrderDetailDTO();
+                    d.setId(detail.getId());
+                    d.setQuantity(detail.getQuantity());
+                    d.setPrice(detail.getPrice());
+
+                    // Map product
+                    ResCartDTO.ProductDTO p = modelMapper.map(detail.getProduct(), ResCartDTO.ProductDTO.class);
+                    d.setProduct(p);
+
+                    return d;
+                })
+                .toList();
+
+        // Assuming you want to set the first order detail for simplicity
+        if (!orderDetailDTOs.isEmpty()) {
+            dto.setOrderDetails(orderDetailDTOs);
+        }
+
+        return dto;
+    }
+
+    @Override
+    public ResPaginationDTO getOrdersByCustomerId(Pageable pageable, long customerId) throws Exception {
+        Page<Order> orderPage = orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(orderPage.getNumber() + 1);
+        meta.setPageSize(orderPage.getSize());
+        meta.setPages(orderPage.getTotalPages());
+        meta.setTotal(orderPage.getTotalElements());
+
+        res.setMeta(meta);
+        res.setResult(orderPage.getContent());
+
+        List<ResOrderDTO> orderDTOs = orderPage.getContent()
+                .stream()
+                .map(this::convertToResOrderDTO)
+                .toList();
+
+        res.setResult(orderDTOs);
+
+        return res;
     }
 }
