@@ -4,6 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.Permission;
 import com.example.techlap.domain.Role;
 import com.example.techlap.domain.User;
@@ -102,7 +103,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminUser.setEmail("admin@gmail.com");
             adminUser.setAddress("Hồ Chí Minh");
             adminUser.setFullName("I'm super admin");
-            adminUser.setPassword(this.passwordEncoder.encode("123456Aa"));
+            adminUser.setPassword(this.passwordEncoder.encode("Buianhquoc2110@"));
             adminUser.setPhone("0382143560");
             ;
 
@@ -112,6 +113,23 @@ public class DatabaseInitializer implements CommandLineRunner {
             }
 
             this.userRepository.save(adminUser);
+        }
+
+        if (countCustomers == 0) {
+            Customer initialCustomer = new Customer();
+            initialCustomer.setEmail("quocbui2110@gmail.com");
+            initialCustomer.setAddress("Hồ Chí Minh");
+            initialCustomer.setFullName("Anh Quốc Bùi");
+            initialCustomer.setPassword(this.passwordEncoder.encode("Buianhquoc2110@"));
+            initialCustomer.setPhone("0382143560");
+            ;
+
+            Role customerRole = new Role();
+            customerRole.setName("CUSTOMER");
+            customerRole.setDescription("No permissions");
+            customerRole.setPermissions(new ArrayList<>());
+
+            this.roleRepository.save(customerRole);
         }
 
         if (countPermissions > 0 && countRoles > 0 && countUsers > 0) {

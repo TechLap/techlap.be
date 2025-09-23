@@ -57,6 +57,10 @@ public class Customer {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
 
+    @OneToMany(mappedBy = "customer")
+    @JsonIgnore
+    private List<PaymentTransaction> paymentTransactions;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
