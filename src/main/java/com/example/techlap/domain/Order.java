@@ -8,9 +8,12 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.example.techlap.domain.enums.OrderStatus;
 import com.example.techlap.util.SecurityUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
@@ -22,6 +25,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    private String orderCode;
     private BigDecimal totalPrice;
     private String receiverName;
     private String receiverAddress;
@@ -29,15 +33,21 @@ public class Order {
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String note;
-    private String status;
-    private String paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
     Customer customer;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE)
-    List<OrderDetail> orderDetails;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    List<OrderDetail> orderDetails = new ArrayList<>();
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private PaymentTransaction paymentTransaction;
+
 
     private Instant createdAt;
     private Instant updatedAt;

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.example.techlap.util.SecurityUtil;
@@ -28,7 +29,7 @@ public class Cart {
     private Customer customer;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.REMOVE)
-    List<CartDetail> cartDetails;
+    List<CartDetail> cartDetails = new ArrayList<>();
 
     private Instant createdAt;
     private Instant updatedAt;
