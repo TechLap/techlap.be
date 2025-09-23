@@ -48,7 +48,9 @@ public class SecurityConfiguration {
             "/api/v1/user/reset-password",
             "/api/v1/customer/reset-password",
             "/api/v1/user/change-password",
-            "/api/v1/customer/change-password"
+            "/api/v1/customer/change-password",
+            "/api/v1/products/**",
+            "/api/v1/categories/**",
     };
 
     @Value("${techlap.jwt.base64-secret}")
