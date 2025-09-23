@@ -185,4 +185,12 @@ public class ProductServiceImpl implements ProductService {
         return res;
     }
 
+    @Override
+    public List<Product> fetchAllLatestProducts() throws Exception {
+        return this.productRepository.findTop5ByOrderByCreatedAtDesc();
+    }
+    @Override
+    public List<Product> fetchAllBestSellingProducts() throws Exception {
+        return this.productRepository.findTop5BestSellingProducts();
+    }
 }

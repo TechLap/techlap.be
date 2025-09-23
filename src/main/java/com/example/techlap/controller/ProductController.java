@@ -1,5 +1,7 @@
 package com.example.techlap.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,4 +76,31 @@ public class ProductController {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping("products/latest")
+    @ApiMessage("Fetch latest products")
+    public ResponseEntity<List<ResProductDTO>> fetchLatestProducts() throws Exception {
+        List<Product> products = this.productService.fetchAllLatestProducts();
+        List<ResProductDTO> resProducts = products.stream().map(product -> {
+            try {
+                return this.productService.convertToResProductDTO(product);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
+        return ResponseEntity.ok(resProducts);
+    }
+
+    @GetMapping("products/best-sellers")
+    @ApiMessage("Fetch best-sellers products")
+    public ResponseEntity<List<ResProductDTO>> fetchBestSellerProducts() throws Exception {
+        List<Product> products = this.productService.fetchAllBestSellingProducts();
+        List<ResProductDTO> resProducts = products.stream().map(product -> {
+            try {
+                return this.productService.convertToResProductDTO(product);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
+        return ResponseEntity.ok(resProducts);
+    }
 }
