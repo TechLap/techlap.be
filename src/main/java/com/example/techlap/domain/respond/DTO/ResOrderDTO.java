@@ -1,5 +1,4 @@
 package com.example.techlap.domain.respond.DTO;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,26 +27,17 @@ public class ResOrderDTO {
     private String paymentStatus; // ✅ Thêm trạng thái thanh toán
     private String paymentUrl;
     private Instant createdAt;
-    private List<OrderDetailDTO> orderDetails;
+    private List<ResOrderDetailDTO> orderDetails;
 
-    @Getter
+     @Getter
     @Setter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class OrderDetailDTO {
-        private Long id;
+    public static class ResOrderDetailDTO {
+        private long id;
+        private long quantity;
         private BigDecimal price;
-        private Long quantity;
-        private ProductDTO product;
-
-        @Getter
-        @Setter
-        @AllArgsConstructor
-        @NoArgsConstructor
-        public static class ProductDTO {
-            private Long id;
-            private String name;
-            private BigDecimal price;
-        }
+        private ResCartDTO.ProductDTO product;
     }
 }
+
+
+   

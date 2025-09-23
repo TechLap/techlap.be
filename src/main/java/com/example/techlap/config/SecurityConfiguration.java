@@ -44,7 +44,11 @@ public class SecurityConfiguration {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/actuator/health"
+            "/actuator/health",
+            "/api/v1/user/reset-password",
+            "/api/v1/customer/reset-password",
+            "/api/v1/user/change-password",
+            "/api/v1/customer/change-password"
     };
 
     @Value("${techlap.jwt.base64-secret}")

@@ -3,9 +3,11 @@ package com.example.techlap.service.impl;
 import com.example.techlap.domain.*;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqAddToCartDTO;
+import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
+import com.example.techlap.domain.respond.DTO.ResOrderDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
@@ -16,7 +18,6 @@ import com.example.techlap.service.CustomerService;
 import com.example.techlap.util.SecurityUtil;
 import com.querydsl.core.BooleanBuilder;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
@@ -28,8 +29,11 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -40,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final RoleRepository roleRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
@@ -228,6 +233,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Cart addToCart(ReqAddToCartDTO reqAddToCartDTO) throws Exception {
         // Lay thong tin cua customer ra kiem tra xem co gio hang chua?
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : " ";
@@ -285,19 +291,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void changePassword(Long id, ReqChangePasswordDTO password) throws Exception {
-        Customer customerInDB = this.findCustomerByIdOrThrow(id);
+    public void adminChangePassword(long id, ReqAdminChangePasswordDTO changePasswordDTO) throws Exception {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE));
 
-        if (checkIfValidOldPassword(customerInDB, password.getOldPassword())) {
-            if (password.getNewPassword().equals(password.getReNewPassword())) {
-                customerInDB.setPassword(passwordEncoder.encode(password.getNewPassword()));
-                customerRepository.save(customerInDB);
-            } else {
-                throw new IllegalArgumentException("New password and re-new password do not match");
-            }
-        } else {
-            throw new IllegalArgumentException("Old password is incorrect");
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match");
         }
+        customer.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        customerRepository.save(customer);
     }
 
     @Override
@@ -328,7 +330,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception {
         // 1. Tìm customer
         Customer customer = customerRepository.findById(customerId)
@@ -356,5 +358,90 @@ public class CustomerServiceImpl implements CustomerService {
         int totalItems = cartDetailRepository.countByCart(cart);
         cart.setSum(totalItems);
         cartRepository.save(cart);
+    }
+
+    @Override
+    public void changePasswordByEmail(String email, ReqChangePasswordDTO dto) {
+        Customer u = customerRepository.findByEmail(email);
+        if (u == null) {
+            throw new ResourceNotFoundException("CUSTOMER_NOT_FOUND_EXCEPTION_MESSAGE");
+        }
+        if (checkIfValidOldPassword(u, dto.getOldPassword())) {
+            if (dto.getNewPassword().equals(dto.getReNewPassword())) {
+                u.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                customerRepository.save(u);
+            } else {
+                throw new IllegalArgumentException("New password and re-new password do not match");
+            }
+        } else {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+    }
+
+    private ResOrderDTO convertToResOrderDTO(Order order) {
+        ResOrderDTO dto = new ResOrderDTO();
+        dto.setId(order.getId());
+        dto.setReceiverName(order.getReceiverName());
+        dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setReceiverPhone(order.getReceiverPhone());
+        dto.setNote(order.getNote());
+        dto.setStatus(order.getStatus());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setCreatedAt(order.getCreatedAt().toString());
+        dto.setUpdatedAt(order.getUpdatedAt() != null ? order.getUpdatedAt().toString() : null);
+        dto.setCreatedBy(order.getCreatedBy());
+        dto.setUpdatedBy(order.getUpdatedBy() != null ? order.getUpdatedBy().toString() : null);
+        dto.setTotalPrice(order.getTotalPrice().toString());
+
+        // Map customer
+        ResCustomerDTO customerDTO = modelMapper.map(order.getCustomer(), ResCustomerDTO.class);
+        dto.setCustomer(customerDTO);
+
+        // Map order details
+        List<ResOrderDTO.ResOrderDetailDTO> orderDetailDTOs = order.getOrderDetails().stream()
+                .map(detail -> {
+                    ResOrderDTO.ResOrderDetailDTO d = new ResOrderDTO.ResOrderDetailDTO();
+                    d.setId(detail.getId());
+                    d.setQuantity(detail.getQuantity());
+                    d.setPrice(detail.getPrice());
+
+                    // Map product
+                    ResCartDTO.ProductDTO p = modelMapper.map(detail.getProduct(), ResCartDTO.ProductDTO.class);
+                    d.setProduct(p);
+
+                    return d;
+                })
+                .toList();
+
+        // Assuming you want to set the first order detail for simplicity
+        if (!orderDetailDTOs.isEmpty()) {
+            dto.setOrderDetails(orderDetailDTOs);
+        }
+
+        return dto;
+    }
+
+    @Override
+    public ResPaginationDTO getOrdersByCustomerId(Pageable pageable, long customerId) throws Exception {
+        Page<Order> orderPage = orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+
+        meta.setPage(orderPage.getNumber() + 1);
+        meta.setPageSize(orderPage.getSize());
+        meta.setPages(orderPage.getTotalPages());
+        meta.setTotal(orderPage.getTotalElements());
+
+        res.setMeta(meta);
+        res.setResult(orderPage.getContent());
+
+        List<ResOrderDTO> orderDTOs = orderPage.getContent()
+                .stream()
+                .map(this::convertToResOrderDTO)
+                .toList();
+
+        res.setResult(orderDTOs);
+
+        return res;
     }
 }

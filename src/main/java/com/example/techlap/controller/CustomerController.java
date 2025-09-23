@@ -13,6 +13,8 @@ import com.example.techlap.service.CustomerService;
 
 import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.service.EmailService;
+import com.example.techlap.util.SecurityUtil;
+
 import org.springframework.context.MessageSource;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +26,8 @@ import java.util.Locale;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @AllArgsConstructor
@@ -95,11 +97,12 @@ public class CustomerController {
         Cart cart = this.customerService.getCartByCustomer();
         return ResponseEntity.status(HttpStatus.OK).body(this.customerService.convertToResCartDTO(cart));
     }
+
     @PostMapping("/customers/change-password/{id}")
     @ApiMessage("Change password")
     public ResponseEntity<Void> changePassword(@PathVariable("id") Long id,
-            @RequestBody @Valid ReqChangePasswordDTO changePasswordDTO) throws Exception {
-        this.customerService.changePassword(id, changePasswordDTO);
+            @RequestBody @Valid ReqAdminChangePasswordDTO changePasswordDTO) throws Exception {
+        this.customerService.adminChangePassword(id, changePasswordDTO);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -123,8 +126,29 @@ public class CustomerController {
 
     @DeleteMapping("/customers/remove-cart-detail")
     @ApiMessage("Delete A CartDetail")
-    public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO) throws Exception {
-        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(), reqRemoveCartDetailDTO.getCustomerId());
+    public ResponseEntity<Void> removeCartDetail(@RequestBody ReqRemoveCartDetailDTO reqRemoveCartDetailDTO)
+            throws Exception {
+        this.customerService.removeCartDetailForCart(reqRemoveCartDetailDTO.getCartDetailId(),
+                reqRemoveCartDetailDTO.getCustomerId());
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/customers/me/change-password")
+    @ApiMessage("Self change password")
+    public ResponseEntity<Void> changeMyPassword(@RequestBody @Valid ReqChangePasswordDTO dto) throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UsernameNotFoundException("No authenticated user"));
+        customerService.changePasswordByEmail(email, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/customers/history-orders")
+    @ApiMessage("Get history orders by customer id")
+    public ResponseEntity<ResPaginationDTO> getOrdersByCustomerId(Pageable pageable) throws Exception {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new UsernameNotFoundException("No authenticated user"));
+        Customer customer = customerService.fetchCustomerByEmail(email);
+        ResPaginationDTO res = this.customerService.getOrdersByCustomerId(pageable, customer.getId());
+        return ResponseEntity.ok(res);
     }
 }

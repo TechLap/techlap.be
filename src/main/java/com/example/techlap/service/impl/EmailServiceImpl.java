@@ -63,7 +63,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public SimpleMailMessage constructResetTokenEmailUser(
             String contextPath, Locale locale, String token, User user) {
-        String url = contextPath + "/user/change-password?token=" + token;
+        String url = contextPath + "/admin/reset-password?token=" + token;
         String message = messages.getMessage("message.resetPassword",
                 null, locale);
         return constructEmail("Reset Password", message + " \r\n" + url, user);
@@ -72,7 +72,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public SimpleMailMessage constructResetTokenEmailCustomer(
             String contextPath, Locale locale, String token, Customer customer) {
-        String url = contextPath + "/customer/change-password?token=" + token;
+        String url = contextPath + "/reset-password?token=" + token;
         String message = messages.getMessage("message.resetPassword",
                 null, locale);
         return constructEmail("Reset Password", message + " \r\n" + url, customer);
@@ -112,6 +112,10 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    public String getFrontendUrl() {
+        return "http://localhost:3000";
+    }
+
     @Override
     @Transactional
     public GenericResponse resetUserPassword(HttpServletRequest request, String email) throws Exception {
@@ -121,7 +125,7 @@ public class EmailServiceImpl implements EmailService {
         }
         String token = UUID.randomUUID().toString();
         createPasswordResetTokenForUser(user, token);
-        send(constructResetTokenEmailUser(getAppUrl(request),
+        send(constructResetTokenEmailUser(getFrontendUrl(),
                 request.getLocale(), token, user));
         return new GenericResponse(
                 messages.getMessage("message.resetPasswordEmail", null,
@@ -153,7 +157,7 @@ public class EmailServiceImpl implements EmailService {
         }
         String token = UUID.randomUUID().toString();
         createPasswordResetTokenForCustomer(customer, token);
-        send(constructResetTokenEmailCustomer(getAppUrl(request),
+        send(constructResetTokenEmailCustomer(getFrontendUrl(),
                 request.getLocale(), token, customer));
         return new GenericResponse(
                 messages.getMessage("message.resetPasswordEmail", null,

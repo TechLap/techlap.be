@@ -2,11 +2,16 @@ package com.example.techlap.service;
 
 import com.example.techlap.domain.Cart;
 import com.example.techlap.domain.request.ReqAddToCartDTO;
+import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.respond.DTO.ResCartDTO;
+
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.Order;
 import com.example.techlap.domain.criteria.CriteriaFilterCustomer;
 import com.example.techlap.domain.request.ReqUpdateCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
@@ -38,14 +43,16 @@ public interface CustomerService {
 
     // Convert entity to DTO
     ResCustomerDTO convertToResCustomerDTO(Customer customer);
+
     ResCartDTO convertToResCartDTO(Cart cart);
 
-    ResPaginationDTO filterCustomers (Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer) throws Exception;
+    ResPaginationDTO filterCustomers(Pageable pageable, CriteriaFilterCustomer criteriaFilterCustomer) throws Exception;
 
     Cart addToCart(ReqAddToCartDTO reqAddToCartDTO) throws Exception;
+
     Cart getCartByEmail(String email) throws Exception;
 
-    void changePassword(Long id, ReqChangePasswordDTO changePasswordDTO) throws Exception;
+    void adminChangePassword(long id, ReqAdminChangePasswordDTO changePasswordDTO) throws Exception;
 
     boolean checkIfValidOldPassword(Customer customer, String oldPassword);
 
@@ -56,4 +63,7 @@ public interface CustomerService {
     Cart getCartByCustomer() throws Exception;
 
     void removeCartDetailForCart(long cartDetailId, long customerId) throws Exception;
+    void changePasswordByEmail(String email, ReqChangePasswordDTO dto) throws Exception;
+
+    ResPaginationDTO getOrdersByCustomerId(Pageable pageable, long customerId) throws Exception;
 }
