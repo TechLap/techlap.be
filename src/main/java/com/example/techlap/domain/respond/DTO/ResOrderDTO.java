@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.example.techlap.domain.enums.OrderStatus;
+import com.example.techlap.domain.respond.DTO.ResCustomerDTO;
 
 @Getter
 @Setter
@@ -27,6 +28,7 @@ public class ResOrderDTO {
     private String paymentStatus; // ✅ Thêm trạng thái thanh toán
     private String paymentUrl;
     private Instant createdAt;
+    private ResCustomerDTO customer;
     private List<ResOrderDetailDTO> orderDetails;
 
      @Getter
@@ -39,5 +41,3 @@ public class ResOrderDTO {
     }
 }
 
-
-   

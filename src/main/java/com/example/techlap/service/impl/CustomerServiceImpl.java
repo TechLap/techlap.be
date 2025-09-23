@@ -386,12 +386,9 @@ public class CustomerServiceImpl implements CustomerService {
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setNote(order.getNote());
         dto.setStatus(order.getStatus());
-        dto.setPaymentMethod(order.getPaymentMethod());
-        dto.setCreatedAt(order.getCreatedAt().toString());
-        dto.setUpdatedAt(order.getUpdatedAt() != null ? order.getUpdatedAt().toString() : null);
-        dto.setCreatedBy(order.getCreatedBy());
-        dto.setUpdatedBy(order.getUpdatedBy() != null ? order.getUpdatedBy().toString() : null);
-        dto.setTotalPrice(order.getTotalPrice().toString());
+        dto.setPaymentMethod(order.getPaymentTransaction().getPaymentMethod());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setTotalPrice(order.getTotalPrice());
 
         // Map customer
         ResCustomerDTO customerDTO = modelMapper.map(order.getCustomer(), ResCustomerDTO.class);
