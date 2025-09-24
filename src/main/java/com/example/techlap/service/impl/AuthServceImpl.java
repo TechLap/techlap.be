@@ -28,6 +28,7 @@ import com.example.techlap.domain.respond.DTO.ResLoginDTO.UserLogin;
 import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.repository.CustomerRepository;
+import com.example.techlap.repository.PermissionRepository;
 import com.example.techlap.repository.RoleRepository;
 import com.example.techlap.service.AuthService;
 import com.example.techlap.service.CustomerService;
@@ -51,6 +52,7 @@ public class AuthServceImpl implements AuthService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String RESOURCE_NOT_FOUND_EXCEPTION_MESSAGE = "Resource not found";
+    private final PermissionRepository permissionRepository;
 
     // Internal Login
     @Override
@@ -73,12 +75,11 @@ public class AuthServceImpl implements AuthService {
 
         User inDBUser = this.userService.fetchUserByEmail(loginDTO.getUsername());
         if (inDBUser != null) {
-            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(inDBUser.getRole().getId(), inDBUser.getRole().getName());
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     inDBUser.getId(),
                     inDBUser.getEmail(),
                     inDBUser.getFullName(),
-                    roleDTO);
+                    inDBUser.getRole());
             res.setUser(userLogin);
         }
 
@@ -179,13 +180,12 @@ public class AuthServceImpl implements AuthService {
         ResLoginDTO res = new ResLoginDTO();
         User currentUserDB = this.userService.fetchUserByEmail(email);
         if (currentUserDB != null) {
-            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(currentUserDB.getRole().getId(),
-                    currentUserDB.getRole().getName());
+
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                     currentUserDB.getId(),
                     currentUserDB.getEmail(),
                     currentUserDB.getFullName(),
-                    roleDTO);
+                    currentUserDB.getRole());
             res.setUser(userLogin);
         }
 
@@ -256,12 +256,10 @@ public class AuthServceImpl implements AuthService {
         ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
 
         if (currentUserDB != null) {
-            UserLogin.RoleDTO roleDTO = new UserLogin.RoleDTO(currentUserDB.getRole().getId(),
-                    currentUserDB.getRole().getName());
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
             userLogin.setFullName(currentUserDB.getFullName());
-            userLogin.setRole(roleDTO);
+            userLogin.setRole(currentUserDB.getRole());
 
             userGetAccount.setUser(userLogin);
             return userGetAccount;
@@ -320,6 +318,11 @@ public class AuthServceImpl implements AuthService {
         this.customerService.updateCustomerToken(null, email);
 
         return null;
+    }
+
+    @Override
+    public boolean hasPermission(String email, String apiPath, String method) {
+        return this.permissionRepository.existsByRolesUsersEmailAndApiPathAndMethod(email, apiPath, method);
     }
 
 }

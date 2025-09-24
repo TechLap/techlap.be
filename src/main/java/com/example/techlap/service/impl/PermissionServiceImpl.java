@@ -62,6 +62,7 @@ public class PermissionServiceImpl implements PermissionService {
         permissionInDB.setName(permission.getName());
         permissionInDB.setApiPath(permission.getApiPath());
         permissionInDB.setMethod(permission.getMethod());
+        permissionInDB.setModule(permission.getModule());
         if (permission.getRoles() != null) {
             List<Long> roleIds = permission.getRoles().stream().map(Role::getId).toList();
             List<Role> roles = this.roleRepository.findByIdIn(roleIds);

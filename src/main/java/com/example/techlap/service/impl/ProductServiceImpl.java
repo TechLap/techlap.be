@@ -140,7 +140,7 @@ public class ProductServiceImpl implements ProductService {
             builder.and(qProduct.name.containsIgnoreCase(criteriaFilterProduct.getName()));
         }
         if (criteriaFilterProduct.getStatus() != null && !criteriaFilterProduct.getStatus().toString().isEmpty()) {
-            builder.and(qProduct.status.eq((ProductStatus) criteriaFilterProduct.getStatus()));
+            builder.and(qProduct.status.eq(ProductStatus.valueOf(criteriaFilterProduct.getStatus())));
         }
 
         if (criteriaFilterProduct.getBrand() != null) {
