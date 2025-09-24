@@ -35,6 +35,7 @@ public class SecurityConfiguration {
     private static final String[] PUBLIC_API = new String[] {
             "/api/v1/login", "/api/v1/login/**",
             "/api/v1/admin/login", "/api/v1/admin/login/**",
+            "/api/v1/user/dashboard",
             "/api/v1/register", "/api/v1/register/**",
             "/api/v1/auth/refresh",
             "/api/v1/auth/customers/refresh",
