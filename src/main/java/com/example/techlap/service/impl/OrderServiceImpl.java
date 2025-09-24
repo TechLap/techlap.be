@@ -170,6 +170,7 @@ public class OrderServiceImpl implements OrderService {
         }
         this.cartDetailRepository.deleteAll(cart.getCartDetails());
         cart.getCartDetails().clear();
+        cart.setSum(0);
         return this.convertToResOrderDTO(orderEntity);
     }
 

@@ -1,5 +1,6 @@
 package com.example.techlap.service.impl;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -7,6 +8,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.techlap.repository.CustomerRepository;
+import com.example.techlap.repository.OrderRepository;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,7 @@ import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResDashboardDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResUserDTO;
@@ -46,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String USER_NOT_FOUND_EXCEPTION_MESSAGE = "User not found";
 
@@ -244,6 +249,14 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new IllegalArgumentException("Old password is incorrect");
         }
+    }
+
+    @Override
+    public ResDashboardDTO getDashboardDTO() {
+        BigDecimal totalIncome = this.orderRepository.calculateTotalRevenue();
+        long totalCustomer = this.customerRepository.count();
+        ResDashboardDTO dashboardDTO = new ResDashboardDTO(totalCustomer, totalIncome);
+        return dashboardDTO;
     }
 
 }

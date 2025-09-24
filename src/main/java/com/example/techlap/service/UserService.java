@@ -8,6 +8,7 @@ import com.example.techlap.domain.request.ReqAdminChangePasswordDTO;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResDashboardDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResUserDTO;
@@ -52,4 +53,6 @@ public interface UserService {
     User getUserByPasswordResetToken(String token) throws Exception;
 
     void changePasswordByEmail (String email, ReqChangePasswordDTO changePasswordDTO) throws Exception;
+
+    ResDashboardDTO getDashboardDTO() throws Exception;
 }
