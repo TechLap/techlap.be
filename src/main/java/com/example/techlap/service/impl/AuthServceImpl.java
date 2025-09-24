@@ -280,7 +280,7 @@ public class AuthServceImpl implements AuthService {
             customerLogin.setId(currentCustomerDB.getId());
             customerLogin.setEmail(currentCustomerDB.getEmail());
             customerLogin.setFullName(currentCustomerDB.getFullName());
-            customerLogin.setTotalCart(currentCustomerDB.getCart().getSum());
+            customerLogin.setTotalCart(currentCustomerDB.getCart() != null ? currentCustomerDB.getCart().getSum() : 0);
             customerLogin.setRole(currentCustomerDB.getRole());
 
             customerGetAccount.setCustomer(customerLogin);

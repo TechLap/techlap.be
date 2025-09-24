@@ -27,7 +27,9 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/auth/customers/account",
                 "/api/v1/auth/account",
                 "/api/v1/user/change-password",
+                "/api/v1/users/me/change-password",
                 "/api/v1/user/save-password",
+                "/api/v1/user/dashboard",
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
                 "/swagger-ui.html",
@@ -36,7 +38,7 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/customer/reset-password",
                 "/api/v1/user/change-password",
                 "/api/v1/customer/change-password",
-                "/api/v1/products",
+                "/api/v1/products/**",
                 "/api/v1/categories",
                 "/api/v1/categories/filter",
                 "/api/v1/brands",
@@ -51,7 +53,10 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/customers/get-cart",
                 "/api/v1/customers/remove-cart-detail",
                 "/api/v1/customers/history-orders",
-                "/api/v1/orders/**",
+                "/api/v1/files/**",
+                "/storage/**",
+                "/api/v1/orders/**"
+
         };
         registry.addInterceptor(permissionInterceptor()).excludePathPatterns(whiteList);
     }
