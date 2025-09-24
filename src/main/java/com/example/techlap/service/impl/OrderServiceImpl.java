@@ -2,6 +2,9 @@ package com.example.techlap.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.Instant;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -16,6 +19,8 @@ import com.example.techlap.domain.Order;
 import com.example.techlap.domain.OrderDetail;
 import com.example.techlap.domain.PaymentTransaction;
 import com.example.techlap.domain.Product;
+import com.example.techlap.domain.QOrder;
+import com.example.techlap.domain.criteria.CriteriaFilterOrder;
 import com.example.techlap.domain.enums.OrderStatus;
 import com.example.techlap.domain.enums.PaymentStatus;
 import com.example.techlap.domain.request.ReqCreateOrder;
@@ -30,6 +35,7 @@ import com.example.techlap.service.OrderService;
 import com.example.techlap.util.SecurityUtil;
 import com.example.techlap.service.VNPayService;
 import com.example.techlap.util.payment.VNPayUtil;
+import com.querydsl.core.BooleanBuilder;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -171,6 +177,59 @@ public class OrderServiceImpl implements OrderService {
         res.setMeta(meta);
         res.setResult(resOrderPage.getContent());
         return res;
+    }
+
+    @Override
+    public ResOrderDTO updateOrderInfo(Order order) throws Exception {
+        Order orderInDB = this.orderRepository.findById(order.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        orderInDB.setReceiverName(order.getReceiverName());
+        orderInDB.setReceiverAddress(order.getReceiverAddress());
+        orderInDB.setReceiverPhone(order.getReceiverPhone());
+        orderInDB.setNote(order.getNote());
+        orderInDB.setStatus(order.getStatus());
+        orderInDB = this.orderRepository.save(orderInDB);
+        return this.convertToResOrderDTO(orderInDB);
+    }
+
+    @Override
+    public ResPaginationDTO filterOrders(Pageable pageable, CriteriaFilterOrder criteriaFilterOrder) throws Exception {
+        QOrder qOrder = QOrder.order;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (criteriaFilterOrder.getOrderCode() != null && !criteriaFilterOrder.getOrderCode().isEmpty()) {
+            builder.and(qOrder.orderCode.containsIgnoreCase(criteriaFilterOrder.getOrderCode()));
+        }
+
+        if (criteriaFilterOrder.getCustomer() != null) {
+            builder.and(qOrder.customer.fullName.containsIgnoreCase(criteriaFilterOrder.getCustomer().getFullName()));
+        }
+
+        if (criteriaFilterOrder.getStatus() != null && !criteriaFilterOrder.getStatus().toString().isEmpty()) {
+            builder.and(qOrder.status.eq(OrderStatus.valueOf(criteriaFilterOrder.getStatus())));
+        }
+
+        if (criteriaFilterOrder.getCreatedAt() != null && !criteriaFilterOrder.getCreatedAt().isEmpty()) {
+            LocalDate localDate = LocalDate.parse(criteriaFilterOrder.getCreatedAt());
+            ZoneId defaultZoneId = ZoneId.systemDefault();
+            Instant from = localDate.atStartOfDay(defaultZoneId).toInstant();
+            Instant to = localDate.plusDays(1).atStartOfDay(defaultZoneId).minusNanos(1).toInstant();
+            builder.and(qOrder.createdAt.between(from, to));
+        }
+
+        Page<Order> orderPage = orderRepository.findAll(builder, pageable);
+        Page<ResOrderDTO> resOrderPage = orderPage.map(this::convertToResOrderDTO);
+        ResPaginationDTO res = new ResPaginationDTO();
+        ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
+        meta.setPages(orderPage.getTotalPages());
+        meta.setTotal(orderPage.getTotalElements());
+
+        res.setMeta(meta);
+        res.setResult(resOrderPage.getContent());
+        return res;
+
     }
 
 }

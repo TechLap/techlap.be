@@ -3,6 +3,8 @@ package com.example.techlap.service;
 
 import org.springframework.data.domain.Pageable;
 
+import com.example.techlap.domain.Order;
+import com.example.techlap.domain.criteria.CriteriaFilterOrder;
 import com.example.techlap.domain.enums.OrderStatus;
 import com.example.techlap.domain.request.ReqCreateOrder;
 import com.example.techlap.domain.respond.DTO.ResOrderDTO;
@@ -21,4 +23,8 @@ public interface OrderService {
     ResOrderDTO getByOrderCode(String orderCode) throws Exception;
 
     ResPaginationDTO getOrdersWithPagination(Pageable pageable) throws Exception;
+
+    ResOrderDTO updateOrderInfo(Order order) throws Exception;
+
+    ResPaginationDTO filterOrders(Pageable pageable, CriteriaFilterOrder criteriaFilterOrder) throws Exception;
 }

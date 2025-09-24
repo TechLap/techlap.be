@@ -3,6 +3,7 @@ package com.example.techlap.controller;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.techlap.domain.Order;
+import com.example.techlap.domain.criteria.CriteriaFilterOrder;
 import com.example.techlap.domain.request.ReqCreateOrder;
 import com.example.techlap.domain.respond.DTO.ResOrderDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
@@ -36,5 +39,15 @@ public class OrderController {
     @GetMapping("/orders")
     public ResponseEntity<ResPaginationDTO> getOrdersWithPagination(Pageable pageable) throws Exception {
         return ResponseEntity.ok(this.orderService.getOrdersWithPagination(pageable));
+    }
+
+    @PutMapping("/orders")
+    public ResponseEntity<ResOrderDTO> updateOrderInfo(@RequestBody Order order) throws Exception {
+        return ResponseEntity.ok(this.orderService.updateOrderInfo(order));
+    }
+
+    @PostMapping("/orders/filter")
+    public ResponseEntity<ResPaginationDTO> filterOrders(Pageable pageable, @RequestBody CriteriaFilterOrder criteriaFilterOrder) throws Exception {
+        return ResponseEntity.ok(this.orderService.filterOrders(pageable, criteriaFilterOrder));
     }
 }

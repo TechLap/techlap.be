@@ -2,7 +2,6 @@ package com.example.techlap.service;
 
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.request.ReqLoginDTO;
-import com.example.techlap.domain.request.ReqRegisterCustomerDTO;
 import com.example.techlap.domain.respond.DTO.ResCustomerLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResLoginDTO;
 import com.example.techlap.domain.respond.DTO.ResRegisterCustomerDTO;
@@ -28,4 +27,6 @@ public interface AuthService {
     Void logoutForCustomer() throws Exception;
 
     ResRegisterCustomerDTO convertToResRegisterCustomerDTO(Customer customer) throws Exception;
+
+    boolean hasPermission(String email, String apiPath, String method);
 }

@@ -15,4 +15,6 @@ public interface PermissionRepository extends JpaRepository<Permission, Long>, Q
     Permission findByName(@NotBlank(message = "name isn't blank") String name);
 
     List<Permission> findByIdIn(List<Long> ids);
+
+    boolean existsByRolesUsersEmailAndApiPathAndMethod(String email, String apiPath, String method);
 }

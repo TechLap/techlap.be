@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 
 import com.example.techlap.domain.Brand;
 import com.example.techlap.domain.Category;
-import com.example.techlap.domain.enums.ProductStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +19,7 @@ public class CriteriaFilterProduct {
 
     private String name;
     private String createdAt;
-    private Enum<ProductStatus> status;
+    private String status;
     private Brand brand;
     private Category category;
     private PriceRange priceRange;
