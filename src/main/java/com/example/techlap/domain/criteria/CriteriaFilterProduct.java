@@ -1,6 +1,5 @@
 package com.example.techlap.domain.criteria;
 
-
 import java.math.BigDecimal;
 
 import com.example.techlap.domain.Brand;
@@ -27,7 +26,7 @@ public class CriteriaFilterProduct {
     @Getter
     @Setter
     public static class PriceRange {
-        private BigDecimal minPrice;
-        private BigDecimal maxPrice;
+        private BigDecimal min;
+        private BigDecimal max;
     }
 }

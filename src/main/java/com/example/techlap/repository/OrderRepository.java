@@ -12,9 +12,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.techlap.domain.Order;
 
-
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long>, QuerydslPredicateExecutor<Order> { 
+
 
     @Query("SELECT coalesce(sum(od.price * od.quantity), 0) FROM OrderDetail od WHERE od.order.id = :orderId")
     BigDecimal calculateTotalPrice(Long orderId);
@@ -22,6 +22,9 @@ public interface OrderRepository extends JpaRepository<Order, Long>, QuerydslPre
     Optional<Order> findByOrderCode(String orderCode);
 
     Page<Order> findAllByOrderByCreatedAtDesc(Pageable pageable);
-  
+
     Page<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId, Pageable pageable);
+
+    @Query("SELECT coalesce(sum(od.price * od.quantity), 0) FROM OrderDetail od")
+    BigDecimal calculateTotalRevenue();
 }

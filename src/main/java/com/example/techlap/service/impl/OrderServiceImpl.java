@@ -28,6 +28,7 @@ import com.example.techlap.domain.respond.DTO.ResOrderDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO.Meta;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.repository.CartDetailRepository;
 import com.example.techlap.repository.CartRepository;
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.repository.OrderRepository;
@@ -52,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final ModelMapper modelMapper;
     private final VNPayService vnPayService;
+    private final CartDetailRepository cartDetailRepository;
 
     // private ResOrderDetailDTO convertToResOrderDetailDTO(OrderDetail orderDetail)
     // {
@@ -134,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
             orderDetail.setProduct(cartDetail.getProduct());
             orderDetail.setQuantity(cartDetail.getQuantity());
             orderDetail.setPrice(cartDetail.getPrice());
-            totalPrice = totalPrice.add(cartDetail.getPrice().multiply(BigDecimal.valueOf(cartDetail.getQuantity())));
+            totalPrice = totalPrice.add(cartDetail.getPrice());
             details.add(orderDetail);
         }
         orderEntity.setOrderDetails(details);
@@ -160,7 +162,21 @@ public class OrderServiceImpl implements OrderService {
 
             orderEntity.setPaymentTransaction(paymentTransaction);
             orderEntity = this.orderRepository.save(orderEntity);
+        } else {
+            PaymentTransaction paymentTransaction = new PaymentTransaction();
+            paymentTransaction.setOrder(orderEntity);
+            paymentTransaction.setAmount(totalPrice);
+            paymentTransaction.setOrderCode(orderEntity.getOrderCode());
+            paymentTransaction.setStatus(PaymentStatus.PENDING);
+            paymentTransaction.setPaymentMethod("COD");
+            paymentTransaction.setCurrency("VND");
+
+            orderEntity.setPaymentTransaction(paymentTransaction);
+            orderEntity = this.orderRepository.save(orderEntity);
         }
+        this.cartDetailRepository.deleteAll(cart.getCartDetails());
+        cart.getCartDetails().clear();
+        cart.setSum(0);
         return this.convertToResOrderDTO(orderEntity);
     }
 
