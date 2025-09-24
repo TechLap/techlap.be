@@ -84,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
         productInDB.setStock(product.getStock());
         productInDB.setStatus(product.getStatus());
         productInDB.setBrand(product.getBrand());
+        productInDB.setDiscount(product.getDiscount());
 
         return productRepository.save(productInDB);
     }
@@ -150,13 +151,13 @@ public class ProductServiceImpl implements ProductService {
             builder.and(qProduct.category.eq(criteriaFilterProduct.getCategory()));
         }
         if (criteriaFilterProduct.getPriceRange() != null
-                && (criteriaFilterProduct.getPriceRange().getMinPrice() != null
-                        || criteriaFilterProduct.getPriceRange().getMaxPrice() != null)) {
-            if (criteriaFilterProduct.getPriceRange().getMinPrice() != null) {
-                builder.and(qProduct.price.goe(criteriaFilterProduct.getPriceRange().getMinPrice()));
+                && (criteriaFilterProduct.getPriceRange().getMin() != null
+                        || criteriaFilterProduct.getPriceRange().getMax() != null)) {
+            if (criteriaFilterProduct.getPriceRange().getMin() != null) {
+                builder.and(qProduct.price.goe(criteriaFilterProduct.getPriceRange().getMin()));
             }
-            if (criteriaFilterProduct.getPriceRange().getMaxPrice() != null) {
-                builder.and(qProduct.price.loe(criteriaFilterProduct.getPriceRange().getMaxPrice()));
+            if (criteriaFilterProduct.getPriceRange().getMax() != null) {
+                builder.and(qProduct.price.loe(criteriaFilterProduct.getPriceRange().getMax()));
             }
         }
         if (criteriaFilterProduct.getCreatedAt() != null && !criteriaFilterProduct.getCreatedAt().isEmpty()) {

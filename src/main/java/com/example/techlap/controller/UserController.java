@@ -9,6 +9,7 @@ import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 import com.example.techlap.domain.request.ReqUpdateUserDTO;
 import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.domain.respond.DTO.ResCreateUserDTO;
+import com.example.techlap.domain.respond.DTO.ResDashboardDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResUpdateUserDTO;
 import com.example.techlap.domain.respond.DTO.ResUserDTO;
@@ -28,6 +29,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @AllArgsConstructor
@@ -117,5 +121,12 @@ public class UserController {
         userService.changePasswordByEmail(email, dto);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/user/dashboard")
+    public ResponseEntity<ResDashboardDTO> getDashboard () throws Exception{
+        ResDashboardDTO dashboardDTO = this.userService.getDashboardDTO();
+        return ResponseEntity.ok(dashboardDTO);
+    }
+    
 
 }

@@ -381,12 +381,13 @@ public class CustomerServiceImpl implements CustomerService {
     private ResOrderDTO convertToResOrderDTO(Order order) {
         ResOrderDTO dto = new ResOrderDTO();
         dto.setId(order.getId());
+        dto.setOrderCode(order.getOrderCode());;
         dto.setReceiverName(order.getReceiverName());
         dto.setReceiverAddress(order.getReceiverAddress());
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setNote(order.getNote());
         dto.setStatus(order.getStatus());
-        dto.setPaymentMethod(order.getPaymentTransaction().getPaymentMethod());
+        dto.setPaymentMethod(order.getPaymentTransaction() != null ? order.getPaymentTransaction().getPaymentMethod() : "cod");
         dto.setCreatedAt(order.getCreatedAt());
         dto.setTotalPrice(order.getTotalPrice());
 
