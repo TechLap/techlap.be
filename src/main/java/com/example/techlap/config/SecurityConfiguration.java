@@ -42,18 +42,17 @@ public class SecurityConfiguration {
             "/api/v1/auth/refresh",
             "/api/v1/auth/customers/refresh",
             "/api/v1/auth/logout",
-            "/api/v1/user/change-password",
             "/api/v1/user/save-password",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/actuator/health",
-            "/api/v1/user/reset-password",
-            "/api/v1/customer/reset-password",
-            "/api/v1/user/change-password",
-            "/api/v1/customer/change-password",
             "/api/v1/products/latest",
             "/api/v1/products/best-sellers",
+            "/api/v1/users/reset-password",
+            "/api/v1/customers/reset-password",
+            "/api/v1/users/change-password",
+            "/api/v1/customers/change-password",
     };
 
     @Value("${techlap.jwt.base64-secret}")

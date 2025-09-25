@@ -95,7 +95,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping("/user/reset-password")
+    @PostMapping("/users/reset-password")
     @ApiMessage("Reset password")
     public ResponseEntity<GenericResponse> resetPassword(HttpServletRequest request,
             @RequestParam("email") String email) throws Exception {
@@ -103,7 +103,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/user/change-password")
+    @PostMapping("/users/change-password")
     @ApiMessage("Change password")
     public ResponseEntity<GenericResponse> changePasswordToken(Locale locale,
             @Valid @RequestBody ReqPasswordTokenDTO reqPasswordDTO)
@@ -122,7 +122,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/user/dashboard")
+    @GetMapping("/users/dashboard")
     public ResponseEntity<ResDashboardDTO> getDashboard () throws Exception{
         ResDashboardDTO dashboardDTO = this.userService.getDashboardDTO();
         return ResponseEntity.ok(dashboardDTO);
