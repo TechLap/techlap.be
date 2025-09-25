@@ -19,62 +19,65 @@ import com.example.techlap.domain.respond.ApiResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-   @ExceptionHandler(value = {UsernameNotFoundException.class, ResourceAlreadyExistsException.class, BadCredentialsException.class})
-   public ResponseEntity<ApiResponse<Object>> handleResourceInValidException(Exception e) {
-       ApiResponse<Object> apiResponse = new ApiResponse<>();
-       apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-       apiResponse.setMessage(e.getMessage());
-       apiResponse.setError("Exception occurs...");
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
-   }
+    @ExceptionHandler(value = { UsernameNotFoundException.class, ResourceAlreadyExistsException.class,
+            BadCredentialsException.class })
+    public ResponseEntity<ApiResponse<Object>> handleResourceInValidException(Exception e) {
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setMessage(e.getMessage());
+        apiResponse.setError("Exception occurs...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
 
-   @ExceptionHandler(ResourceNotFoundException.class)
-   public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(ResourceNotFoundException e) {
-       ApiResponse<Object> apiResponse = new ApiResponse<>();
-       apiResponse.setStatusCode(HttpStatus.NOT_FOUND.value());
-       apiResponse.setMessage(e.getMessage());
-       apiResponse.setError("Resource not found...");
-       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
-   }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(ResourceNotFoundException e) {
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatusCode(HttpStatus.NOT_FOUND.value());
+        apiResponse.setMessage(e.getMessage());
+        apiResponse.setError("Resource not found...");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiResponse);
+    }
 
-   @ExceptionHandler(MethodArgumentNotValidException.class)
-   public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-       BindingResult bindingResult = e.getBindingResult();
-       final List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
+        BindingResult bindingResult = e.getBindingResult();
+        final List<FieldError> fieldErrors = bindingResult.getFieldErrors();
 
-       ApiResponse<Object> apiResponse = new ApiResponse<>();
-       apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-       apiResponse.setError(e.getBody().getDetail());
-       List<String> errors = fieldErrors.stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
-       apiResponse.setMessage(errors.size() > 1 ? errors : errors.getFirst());
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setError(e.getBody().getDetail());
+        List<String> errors = fieldErrors.stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
+        apiResponse.setMessage(errors.size() > 1 ? errors : errors.getFirst());
 
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
-   }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
 
-   @ExceptionHandler(StorageException.class)
-   public ResponseEntity<ApiResponse<Object>> handleFileUploadException(StorageException e) {
-       ApiResponse<Object> apiResponse = new ApiResponse<>();
-       apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-       apiResponse.setMessage(e.getMessage());
-       apiResponse.setError("Exception upload file...");
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
-   }
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<ApiResponse<Object>> handleFileUploadException(StorageException e) {
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setMessage(e.getMessage());
+        apiResponse.setError("Exception upload file...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
 
-   @ExceptionHandler(BadJwtException.class)
-   public ResponseEntity<ApiResponse<Object>> handleFileUploadException(BadJwtException e) {
-       ApiResponse<Object> apiResponse = new ApiResponse<>();
-       apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-       apiResponse.setMessage(e.getMessage());
-       apiResponse.setError("Malformed token...");
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
-   }
+    @ExceptionHandler(BadJwtException.class)
+    public ResponseEntity<ApiResponse<Object>> handleFileUploadException(BadJwtException e) {
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        apiResponse.setMessage(e.getMessage());
+        apiResponse.setError("Malformed token...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+    }
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ApiResponse<Object>> handleAllException(Exception e) {
-//        ApiResponse<Object> apiResponse = new ApiResponse<>();
-//        apiResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-//        apiResponse.setMessage(e.getMessage());
-//        apiResponse.setError("Internal server error...");
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
-//    }
+    // @ExceptionHandler(Exception.class)
+    // public ResponseEntity<ApiResponse<Object>> handleAllException(Exception e) {
+    // ApiResponse<Object> apiResponse = new ApiResponse<>();
+    // apiResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    // apiResponse.setMessage(e.getMessage());
+    // apiResponse.setError("Internal server error...");
+    // return
+    // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+    // }
 }

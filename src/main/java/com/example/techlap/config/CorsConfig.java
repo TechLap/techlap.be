@@ -14,7 +14,10 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
-                Arrays.asList("http://localhost:3000", "http://localhost:4173", "http://localhost:5173", "http://localhost:3100"));
+                Arrays.asList("http://localhost:3000", "http://localhost:4173", "http://localhost:5173",
+                        "http://localhost:3100", "https://horrible-gecko-83.loca.lt"));
+        configuration.setAllowedOrigins(Arrays.asList("https://*.ngrok-free.app"));
+        configuration.addAllowedOriginPattern("https://*.loca.lt");
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allowed methods
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "x-no-retry"));
         // Allow send token
