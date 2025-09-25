@@ -19,7 +19,7 @@ public class CriteriaFilterProduct {
     private String name;
     private String createdAt;
     private String status;
-    private Brand brand;
+    private ProductBrand brand;
     private Category category;
     private PriceRange priceRange;
 
@@ -28,5 +28,11 @@ public class CriteriaFilterProduct {
     public static class PriceRange {
         private BigDecimal min;
         private BigDecimal max;
+    }
+
+    @Getter
+    @Setter
+    public static class ProductBrand {
+        private String name;
     }
 }

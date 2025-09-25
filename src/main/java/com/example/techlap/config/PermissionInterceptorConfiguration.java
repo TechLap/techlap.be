@@ -43,10 +43,12 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/categories/filter",
                 "/api/v1/brands",
                 "/api/v1/brands/filter",
+                "/api/v1/products",
                 "/api/v1/products/best-sellers",
                 "/api/v1/products/latest",
                 "/api/v1/products/filter",
                 "/api/v1/permissions",
+                "/api/v1/permissions/filter",
                 "/api/v1/payment/vnpay-callback",
                 "/api/v1/payment/vnpay-verify",
                 "/api/v1/customers/add-to-cart",
@@ -55,8 +57,10 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/customers/history-orders",
                 "/api/v1/files/**",
                 "/storage/**",
-                "/api/v1/orders/**"
-
+                "/api/v1/orders",
+                "/api/v1/orders/filter",
+                "/api/v1/orders/code/**",
+                "/error",
         };
         registry.addInterceptor(permissionInterceptor()).excludePathPatterns(whiteList);
     }

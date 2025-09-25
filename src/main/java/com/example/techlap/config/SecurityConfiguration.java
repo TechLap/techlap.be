@@ -25,6 +25,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import com.example.techlap.constant.JwtConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 @Configuration
@@ -40,18 +42,17 @@ public class SecurityConfiguration {
             "/api/v1/auth/refresh",
             "/api/v1/auth/customers/refresh",
             "/api/v1/auth/logout",
-            "/api/v1/user/change-password",
             "/api/v1/user/save-password",
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/actuator/health",
+            "/api/v1/products/latest",
+            "/api/v1/products/best-sellers",
             "/api/v1/users/reset-password",
             "/api/v1/customers/reset-password",
             "/api/v1/users/change-password",
             "/api/v1/customers/change-password",
-            "/api/v1/products/**",
-            "/api/v1/categories/**",
     };
 
     @Value("${techlap.jwt.base64-secret}")
@@ -86,7 +87,13 @@ public class SecurityConfiguration {
                 .securityMatcher("/api/**") // only secure API routes
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/permissions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/orders/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(entryPoint))
