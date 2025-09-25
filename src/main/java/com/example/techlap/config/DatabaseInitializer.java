@@ -16,6 +16,7 @@ import com.example.techlap.repository.UserRepository;
 import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -111,6 +112,12 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminRole.setPermissions(allPermissions);
 
             this.roleRepository.save(adminRole);
+
+            Role customerRole = new Role();
+            customerRole.setName("CUSTOMER");
+            customerRole.setDescription("Customer chỉ dùng để đăng nhập, không có quyền quản trị");
+            customerRole.setPermissions(Collections.emptyList());
+            this.roleRepository.save(customerRole);
         }
 
         if (countUsers == 0) {
