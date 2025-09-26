@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.repository.OrderRepository;
+import com.example.techlap.repository.ProductRepository;
+import com.example.techlap.repository.BrandRepository;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -51,6 +53,8 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
     private static final String EMAIL_EXISTS_EXCEPTION_MESSAGE = "Email already exists";
     private static final String USER_NOT_FOUND_EXCEPTION_MESSAGE = "User not found";
 
@@ -255,7 +259,10 @@ public class UserServiceImpl implements UserService {
     public ResDashboardDTO getDashboardDTO() {
         BigDecimal totalIncome = this.orderRepository.calculateTotalRevenue();
         long totalCustomer = this.customerRepository.count();
-        ResDashboardDTO dashboardDTO = new ResDashboardDTO(totalCustomer, totalIncome);
+        long totalOrder = this.orderRepository.count();
+        long totalProduct = this.productRepository.count();
+        long totalBrand = this.brandRepository.count();
+        ResDashboardDTO dashboardDTO = new ResDashboardDTO(totalCustomer, totalProduct, totalOrder, totalBrand, totalIncome);
         return dashboardDTO;
     }
 

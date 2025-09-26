@@ -13,5 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ResDashboardDTO {
     private long totalCustomer;
+    private long totalProduct;
+    private long totalOrder;
+    private long totalBrand;
     private BigDecimal totalIncome;
 }
