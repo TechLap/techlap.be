@@ -113,7 +113,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     public String getFrontendUrl() {
-        return "http://localhost:3000";
+        return "https://app.techlap.me";
     }
 
     @Override
