@@ -39,6 +39,8 @@ public class Product {
     private String image;
     private ProductStatus status;
 
+    private long sold;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
