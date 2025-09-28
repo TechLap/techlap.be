@@ -130,7 +130,6 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void delete(long id) throws Exception {
         Product product = this.findProductByIdOrThrow(id);
-        
         ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
             () -> this.productRepository.delete(product),
             "sản phẩm",

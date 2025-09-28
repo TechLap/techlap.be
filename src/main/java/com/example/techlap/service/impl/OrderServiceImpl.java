@@ -118,8 +118,6 @@ public class OrderServiceImpl implements OrderService {
             Product product = cartDetail.getProduct();
             if (product.getStock() < cartDetail.getQuantity()) {
                 throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
-            } else if(product.getStock() - cartDetail.getQuantity() == 0) {
-                this.productService.updateStatusProductOutOfStock(product.getId());
             }
         }
 
@@ -219,6 +217,9 @@ public class OrderServiceImpl implements OrderService {
                 if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
                     product.setStock(product.getStock() - orderDetail.getQuantity());
                     product.setSold(product.getSold() + orderDetail.getQuantity());
+                    if (product.getStock() - orderDetail.getQuantity() == 0) {
+                        this.productService.updateStatusProductOutOfStock(product.getId());
+                    }
                 } else {
                     throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
                 }
@@ -278,6 +279,9 @@ public class OrderServiceImpl implements OrderService {
             if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
                 product.setStock(product.getStock() - orderDetail.getQuantity());
                 product.setSold(product.getSold() + orderDetail.getQuantity());
+                if (product.getStock() - orderDetail.getQuantity() == 0) {
+                    this.productService.updateStatusProductOutOfStock(product.getId());
+                }
             } else {
                 throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
             }
