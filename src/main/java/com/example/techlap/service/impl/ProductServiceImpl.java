@@ -204,4 +204,11 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> fetchAllBestSellingProducts() throws Exception {
         return this.productRepository.findTop5BestSellingProducts();
     }
+
+    @Override
+    public void updateStatusProductOutOfStock(long id) throws Exception {
+        Product product = this.findProductByIdOrThrow(id);
+        product.setStatus(ProductStatus.OUT_OF_STOCK);
+        this.productRepository.save(product);
+    }
 }

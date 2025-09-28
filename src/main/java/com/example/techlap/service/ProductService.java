@@ -39,4 +39,6 @@ public interface ProductService {
     // Fetch top 5 best-selling products
     List<Product> fetchAllBestSellingProducts() throws Exception;
 
+    void updateStatusProductOutOfStock(long id) throws Exception;
+
 }

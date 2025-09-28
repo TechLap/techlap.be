@@ -39,6 +39,7 @@ import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.repository.OrderRepository;
 import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.OrderService;
+import com.example.techlap.service.ProductService;
 import com.example.techlap.service.EmailService;
 import com.example.techlap.util.SecurityUtil;
 import com.example.techlap.service.VNPayService;
@@ -63,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final EmailService emailService;
-
+    private final ProductService productService;
 
     private Order findOrderByOrderCodeOrThrow(String orderCode) {
         return this.orderRepository.findByOrderCode(orderCode)
@@ -78,14 +79,6 @@ public class OrderServiceImpl implements OrderService {
     private String generateOrderCode() {
         String random = VNPayUtil.getRandomNumber(8);
         return "TLS-" + random;
-    }
-
-    @Override
-    public void updateOrderStatus(Long id, OrderStatus status) throws Exception {
-        Order order = this.orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        order.setStatus(status);
-        this.orderRepository.save(order);
     }
 
     @Override
@@ -125,6 +118,8 @@ public class OrderServiceImpl implements OrderService {
             Product product = cartDetail.getProduct();
             if (product.getStock() < cartDetail.getQuantity()) {
                 throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
+            } else if(product.getStock() - cartDetail.getQuantity() == 0) {
+                this.productService.updateStatusProductOutOfStock(product.getId());
             }
         }
 
@@ -308,19 +303,16 @@ public class OrderServiceImpl implements OrderService {
         List<Object[]> results = orderRepository.findMonthlyRevenue(year);
         List<ResMonthlyRevenueDTO> monthlyData = new ArrayList<>();
 
-        // Initialize all 12 months with 0 revenue
         for (int month = 1; month <= 12; month++) {
             String monthStr = String.format("%d-%02d", year, month);
             monthlyData.add(new ResMonthlyRevenueDTO(monthStr, BigDecimal.ZERO));
         }
 
-        // Map results to corresponding months
         Map<String, BigDecimal> revenueMap = results.stream()
                 .collect(Collectors.toMap(
                         result -> (String) result[0],
                         result -> (BigDecimal) result[1]));
 
-        // Update months with actual revenue
         for (ResMonthlyRevenueDTO data : monthlyData) {
             if (revenueMap.containsKey(data.getMonth())) {
                 data.setRevenue(revenueMap.get(data.getMonth()));
