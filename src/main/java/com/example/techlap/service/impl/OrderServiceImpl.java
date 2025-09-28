@@ -149,6 +149,12 @@ public class OrderServiceImpl implements OrderService {
             totalPrice = totalPrice.add(cartDetail.getPrice());
             details.add(orderDetail);
         }
+        BigDecimal shipping = BigDecimal.ZERO;
+        if (totalPrice.compareTo(new BigDecimal("20000000")) < 0) {
+            shipping = new BigDecimal("100000");
+            totalPrice = totalPrice.add(shipping); // phải gán lại
+        }
+        orderEntity.setShipping(shipping);
         orderEntity.setOrderDetails(details);
         orderEntity.setTotalPrice(totalPrice);
 
