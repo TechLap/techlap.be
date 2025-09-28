@@ -19,6 +19,7 @@ public class ResOrderDTO {
     private Long id;
     private String orderCode;
     private BigDecimal totalPrice;
+    private BigDecimal shipping;
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;

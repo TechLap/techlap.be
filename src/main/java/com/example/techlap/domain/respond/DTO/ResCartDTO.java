@@ -37,6 +37,7 @@ public class ResCartDTO {
         private long stock;
         private String description;
         private String image;
+        private String status;
         private ResProductDTO.CategoryDTO category;
     }
 
