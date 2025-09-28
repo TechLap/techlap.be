@@ -188,7 +188,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> fetchAllLatestProducts() throws Exception {
-        return this.productRepository.findTop5ByOrderByCreatedAtDesc();
+        return this.productRepository.findTop5ByStatusOrderByCreatedAtDesc(ProductStatus.ACTIVE);
     }
     @Override
     public List<Product> fetchAllBestSellingProducts() throws Exception {

@@ -30,6 +30,7 @@ public class Order {
     private String receiverName;
     private String receiverAddress;
     private String receiverPhone;
+    private BigDecimal shipping;
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String note;

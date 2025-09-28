@@ -384,6 +384,7 @@ public class CustomerServiceImpl implements CustomerService {
         dto.setOrderCode(order.getOrderCode());;
         dto.setReceiverName(order.getReceiverName());
         dto.setReceiverAddress(order.getReceiverAddress());
+        dto.setShipping(order.getShipping());
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setNote(order.getNote());
         dto.setStatus(order.getStatus());
