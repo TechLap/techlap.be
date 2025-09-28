@@ -25,6 +25,7 @@ import com.example.techlap.domain.QOrder;
 import com.example.techlap.domain.criteria.CriteriaFilterOrder;
 import com.example.techlap.domain.enums.OrderStatus;
 import com.example.techlap.domain.enums.PaymentStatus;
+import com.example.techlap.domain.enums.ProductStatus;
 import com.example.techlap.domain.request.ReqCreateOrder;
 import com.example.techlap.domain.respond.DTO.ResMonthlyRevenueDTO;
 import com.example.techlap.domain.respond.DTO.ResOrderDTO;
@@ -37,9 +38,9 @@ import com.example.techlap.repository.CartDetailRepository;
 import com.example.techlap.repository.CartRepository;
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.repository.OrderRepository;
+import com.example.techlap.repository.PaymentTransactionRepository;
 import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.OrderService;
-import com.example.techlap.service.ProductService;
 import com.example.techlap.service.EmailService;
 import com.example.techlap.util.SecurityUtil;
 import com.example.techlap.service.VNPayService;
@@ -64,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartDetailRepository cartDetailRepository;
     private final ProductRepository productRepository;
     private final EmailService emailService;
-    private final ProductService productService;
+    private final PaymentTransactionRepository paymentTransactionRepository;
 
     private Order findOrderByOrderCodeOrThrow(String orderCode) {
         return this.orderRepository.findByOrderCode(orderCode)
@@ -209,24 +210,32 @@ public class OrderServiceImpl implements OrderService {
     public ResOrderDTO updateOrderInfo(Order order) throws Exception {
         Order orderInDB = this.orderRepository.findById(order.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        if (order.getStatus() == OrderStatus.PAID && order.getPaymentTransaction() != null
-                && order.getPaymentTransaction().getPaymentMethod().equalsIgnoreCase("COD")) {
+
+        PaymentTransaction paymentTransaction = orderInDB.getPaymentTransaction();
+        if (order.getStatus() == OrderStatus.PAID && paymentTransaction != null
+                && "COD".equalsIgnoreCase(paymentTransaction.getPaymentMethod())) {
+
             orderInDB.setStatus(OrderStatus.PAID);
-            for (OrderDetail orderDetail : order.getOrderDetails()) {
+            paymentTransaction.setStatus(PaymentStatus.SUCCESS);
+            for (OrderDetail orderDetail : orderInDB.getOrderDetails()) {
                 Product product = orderDetail.getProduct();
-                if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
+
+                if (product.getStock() >= orderDetail.getQuantity()) {
                     product.setStock(product.getStock() - orderDetail.getQuantity());
                     product.setSold(product.getSold() + orderDetail.getQuantity());
-                    if (product.getStock() - orderDetail.getQuantity() == 0) {
-                        this.productService.updateStatusProductOutOfStock(product.getId());
+
+                    if (product.getStock() == 0) {
+                        product.setStatus(ProductStatus.OUT_OF_STOCK);
                     }
+
+                    this.productRepository.save(product);
                 } else {
                     throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
                 }
-                this.productRepository.save(product);
             }
+            paymentTransaction = this.paymentTransactionRepository.save(paymentTransaction);
         }
-        orderInDB.setStatus(order.getStatus());
+
         orderInDB = this.orderRepository.save(orderInDB);
         return this.convertToResOrderDTO(orderInDB);
     }
@@ -276,16 +285,18 @@ public class OrderServiceImpl implements OrderService {
         Order order = this.findOrderByOrderCodeOrThrow(orderCode);
         for (OrderDetail orderDetail : order.getOrderDetails()) {
             Product product = orderDetail.getProduct();
-            if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
+            if (product.getStock() > 0 && product.getStock() > orderDetail.getQuantity()) {
                 product.setStock(product.getStock() - orderDetail.getQuantity());
                 product.setSold(product.getSold() + orderDetail.getQuantity());
-                if (product.getStock() - orderDetail.getQuantity() == 0) {
-                    this.productService.updateStatusProductOutOfStock(product.getId());
-                }
+                this.productRepository.save(product);
+            } else if (product.getStock() > 0 && product.getStock() == orderDetail.getQuantity()) {
+                product.setStock(0);
+                product.setSold(product.getSold() + orderDetail.getQuantity());
+                product.setStatus(ProductStatus.OUT_OF_STOCK);
+                this.productRepository.save(product);
             } else {
                 throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
             }
-            this.productRepository.save(product);
         }
         order.setStatus(OrderStatus.PAID);
         this.orderRepository.save(order);
