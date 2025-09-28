@@ -20,7 +20,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface OrderService {
     ResOrderDTO create(ReqCreateOrder order, HttpServletRequest request) throws Exception;
 
-    void updateOrderStatus(Long id, OrderStatus status) throws Exception;
 
     void updateOrderStatusByOrderCode(String orderCode, OrderStatus status) throws Exception;
 
