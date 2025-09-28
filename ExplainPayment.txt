@@ -1,0 +1,78 @@
+VNPay Payment Flow (TechLap)
+
+1) Cấu hình
+- File: src/main/resources/application.properties
+  - payment.vnPay.url: URL thanh toán VNPay (sandbox)
+  - payment.vnPay.returnUrl: URL frontend nhận kết quả (return URL)
+  - payment.vnPay.tmnCode, payment.vnPay.secretKey, payment.vnPay.version, payment.vnPay.command, payment.vnPay.orderType
+- Bean cấu hình: src/main/java/com/example/techlap/config/payment/VNPayConfig.java
+  - getVNPayConfig() sinh bộ params nền tảng: vnp_Version, vnp_Command, vnp_TmnCode, vnp_CurrCode, vnp_OrderType, vnp_Locale, vnp_ReturnUrl, vnp_CreateDate, vnp_ExpireDate
+
+2) Khởi tạo đơn và tạo URL thanh toán
+- Tại: src/main/java/com/example/techlap/service/impl/OrderServiceImpl.java
+  - create(ReqCreateOrder, HttpServletRequest):
+    - Xác thực khách hàng, kiểm tra giỏ hàng và tồn kho
+    - Tạo Order (orderCode dạng "TLS-" + 8 chữ số), tính totalPrice và lưu
+    - Nếu paymentMethod == "VNPAY":
+      - Lấy IP: VNPayUtil.getIpAddress(request)
+      - Gọi vnPayService.createPaymentUrl(order, ip) -> paymentUrl
+      - Tạo PaymentTransaction PENDING: paymentUrl, amount, orderCode, ipAddress, currency VND, method VNPAY
+    - Nếu COD: tạo PaymentTransaction PENDING tương ứng
+
+3) Xử lý IP (vnp_IpAddr)
+- File: src/main/java/com/example/techlap/util/payment/VNPayUtil.java
+  - getIpAddress(request):
+    - Ưu tiên header "X-FORWARDED-FOR"; nếu nhiều IP, lấy IP đầu
+    - Nếu không có thì dùng request.getRemoteAddr()
+    - Chuẩn hóa ::1/IPv6 localhost -> 127.0.0.1; IPv6 khác cũng ép 127.0.0.1
+
+4) Tạo URL thanh toán và ký
+- File: src/main/java/com/example/techlap/service/impl/VNPayServiceImpl.java
+  - createPaymentUrl(order, ipAddr):
+    - Lấy params base từ VNPayConfig.getVNPayConfig()
+    - Đặt:
+      - vnp_Amount = totalPrice * 100 (long)
+      - vnp_TxnRef = chữ số từ orderCode (hoặc random 8 số)
+      - vnp_OrderInfo = "Thanh toan don hang: " + orderCode
+      - vnp_IpAddr = ipAddr
+    - Tạo query ký: VNPayUtil.getPaymentURL(params, false)
+    - secureHash = HMAC SHA512(secretKey, query)
+    - paymentUrl = vnpPayUrl + "?" + query + "&vnp_SecureHash=" + secureHash
+
+5) Callback và verify
+- Controller: src/main/java/com/example/techlap/controller/payment/VNPayController.java
+  - GET /api/v1/payment/vnpay-callback (server-side):
+    - Nhận params, convert VNPayRequest (VNPayUtil.convertToVNPayRequest)
+    - orderCode = "TLS-" + vnp_TxnRef
+    - vnPayService.handlePaymentCallback(model)
+      - validate chữ ký; nếu vnp_ResponseCode == "00" -> success
+    - Cập nhật PaymentTransaction.status (SUCCESS/FAILED) + responseCode
+    - Cập nhật Order.status: PAID nếu success, CANCELLED nếu fail
+  - POST /api/v1/payment/vnpay-verify (frontend return channel):
+    - Nhận body params -> VNPayRequest
+    - valid = vnPayService.validateCallback(model)
+    - Tra và cập nhật PaymentTransaction + Order như trên
+
+6) Xác thực callback (chữ ký)
+- VNPayServiceImpl.validateCallback(VNPayRequest):
+  - Dựng lại params KHÔNG gồm vnp_SecureHash: vnp_Amount, vnp_BankCode, vnp_BankTranNo, vnp_CardType, vnp_OrderInfo, vnp_PayDate, vnp_ResponseCode, vnp_TmnCode, vnp_TransactionNo, vnp_TransactionStatus, vnp_TxnRef
+  - query = VNPayUtil.getPaymentURL(params, false)
+  - secureHash = HMAC(secretKey, query)
+  - So sánh với vnp_SecureHash từ VNPay
+
+7) Trạng thái & lưu vết
+- Entities: Order, PaymentTransaction (1-1)
+  - Order.status: PENDING -> PAID/CANCELLED
+  - PaymentTransaction: paymentUrl, amount, orderCode, ipAddress, paymentMethod, currency, status, responseCode
+
+8) Quy trình tổng quát
+- FE gửi tạo đơn -> BE tạo Order (PENDING)
+- Nếu VNPAY: BE trả paymentUrl -> FE redirect VNPay
+- VNPay trả FE (returnUrl) và/hoặc gọi BE callback
+- BE xác thực chữ ký + đọc vnp_ResponseCode -> cập nhật PaymentTransaction & Order
+- FE hiển thị kết quả
+
+Ghi chú
+- vnp_IpAddr: đã ưu tiên IP đầu X-FORWARDED-FOR, chuẩn hóa IPv6 -> 127.0.0.1
+- Không thêm vnp_SecureHashType khi ký (theo code)
+- vnp_Amount là số nguyên (VND * 100)

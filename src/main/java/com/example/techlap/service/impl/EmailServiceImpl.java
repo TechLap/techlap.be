@@ -5,14 +5,19 @@ import java.util.UUID;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.springframework.context.MessageSource;
 import org.springframework.core.env.Environment;
 
 import com.example.techlap.domain.Customer;
 import com.example.techlap.domain.PasswordResetToken;
+import com.example.techlap.domain.Order;
 import com.example.techlap.domain.User;
 import com.example.techlap.repository.PasswordResetTokenRepository;
 import com.example.techlap.service.EmailService;
@@ -35,6 +40,7 @@ public class EmailServiceImpl implements EmailService {
     private final Environment env;
     private final MessageSource messages;
     private final JavaMailSender mailSender;
+    private final SpringTemplateEngine templateEngine;
 
     @Override
     @Transactional
@@ -177,6 +183,32 @@ public class EmailServiceImpl implements EmailService {
             return new GenericResponse(messages.getMessage("message.resetPasswordSuccess", null, locale));
         } else {
             return new GenericResponse(messages.getMessage("auth.message.invalid", null, locale));
+        }
+    }
+
+    @Override
+    public void sendInvoiceEmail(Order order) {
+        try {
+            MimeMessagePreparator messagePreparator = mimeMessage -> {
+                MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+                messageHelper.setTo(order.getCustomer().getEmail());
+                messageHelper.setFrom(env.getProperty("spring.mail.username"));
+                messageHelper.setSubject("Hóa đơn đặt hàng thành công - " + order.getOrderCode());
+
+                // Tạo context cho Thymeleaf
+                Context context = new Context();
+                context.setVariable("order", order);
+
+                // Render template
+                String htmlContent = templateEngine.process("invoice", context);
+                messageHelper.setText(htmlContent, true);
+            };
+
+            mailSender.send(messagePreparator);
+            System.out.println("✅ Invoice email sent to: " + order.getCustomer().getEmail());
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send invoice email: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

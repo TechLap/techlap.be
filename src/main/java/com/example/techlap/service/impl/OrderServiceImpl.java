@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -24,15 +26,20 @@ import com.example.techlap.domain.criteria.CriteriaFilterOrder;
 import com.example.techlap.domain.enums.OrderStatus;
 import com.example.techlap.domain.enums.PaymentStatus;
 import com.example.techlap.domain.request.ReqCreateOrder;
+import com.example.techlap.domain.respond.DTO.ResMonthlyRevenueDTO;
 import com.example.techlap.domain.respond.DTO.ResOrderDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO.Meta;
+import com.example.techlap.domain.respond.DTO.ResStatusOrderAnalyticsDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.exception.StockNotEnoughException;
 import com.example.techlap.repository.CartDetailRepository;
 import com.example.techlap.repository.CartRepository;
 import com.example.techlap.repository.CustomerRepository;
 import com.example.techlap.repository.OrderRepository;
+import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.OrderService;
+import com.example.techlap.service.EmailService;
 import com.example.techlap.util.SecurityUtil;
 import com.example.techlap.service.VNPayService;
 import com.example.techlap.util.payment.VNPayUtil;
@@ -54,11 +61,14 @@ public class OrderServiceImpl implements OrderService {
     private final ModelMapper modelMapper;
     private final VNPayService vnPayService;
     private final CartDetailRepository cartDetailRepository;
+    private final ProductRepository productRepository;
+    private final EmailService emailService;
 
-    // private ResOrderDetailDTO convertToResOrderDetailDTO(OrderDetail orderDetail)
-    // {
-    // return this.modelMapper.map(orderDetail, ResOrderDetailDTO.class);
-    // }
+
+    private Order findOrderByOrderCodeOrThrow(String orderCode) {
+        return this.orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    }
 
     private ResOrderDTO convertToResOrderDTO(Order order) {
         ResOrderDTO dto = this.modelMapper.map(order, ResOrderDTO.class);
@@ -114,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
         for (CartDetail cartDetail : cart.getCartDetails()) {
             Product product = cartDetail.getProduct();
             if (product.getStock() < cartDetail.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
             }
         }
 
@@ -196,13 +206,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResOrderDTO updateOrderInfo(Order order) throws Exception {
         Order orderInDB = this.orderRepository.findById(order.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        orderInDB.setReceiverName(order.getReceiverName());
-        orderInDB.setReceiverAddress(order.getReceiverAddress());
-        orderInDB.setReceiverPhone(order.getReceiverPhone());
-        orderInDB.setNote(order.getNote());
+        if (order.getStatus() == OrderStatus.PAID && order.getPaymentTransaction() != null
+                && order.getPaymentTransaction().getPaymentMethod().equalsIgnoreCase("COD")) {
+            orderInDB.setStatus(OrderStatus.PAID);
+            for (OrderDetail orderDetail : order.getOrderDetails()) {
+                Product product = orderDetail.getProduct();
+                if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
+                    product.setStock(product.getStock() - orderDetail.getQuantity());
+                    product.setSold(product.getSold() + orderDetail.getQuantity());
+                } else {
+                    throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
+                }
+                this.productRepository.save(product);
+            }
+        }
         orderInDB.setStatus(order.getStatus());
         orderInDB = this.orderRepository.save(orderInDB);
         return this.convertToResOrderDTO(orderInDB);
@@ -246,6 +267,78 @@ public class OrderServiceImpl implements OrderService {
         res.setResult(resOrderPage.getContent());
         return res;
 
+    }
+
+    @Override
+    public void updateStockAfterPayment(String orderCode) throws Exception {
+        Order order = this.findOrderByOrderCodeOrThrow(orderCode);
+        for (OrderDetail orderDetail : order.getOrderDetails()) {
+            Product product = orderDetail.getProduct();
+            if (product.getStock() > 0 && product.getStock() >= orderDetail.getQuantity()) {
+                product.setStock(product.getStock() - orderDetail.getQuantity());
+                product.setSold(product.getSold() + orderDetail.getQuantity());
+            } else {
+                throw new StockNotEnoughException("Insufficient stock for product: " + product.getName());
+            }
+            this.productRepository.save(product);
+        }
+        order.setStatus(OrderStatus.PAID);
+        this.orderRepository.save(order);
+
+        try {
+            this.emailService.sendInvoiceEmail(order);
+            log.info("Invoice email sent for order: {}", orderCode);
+        } catch (Exception e) {
+            log.error("Failed to send invoice email for order: {}", orderCode, e);
+        }
+    }
+
+    @Override
+    public List<ResMonthlyRevenueDTO> getMonthlyRevenue(Integer year) throws Exception {
+        if (year == null) {
+            year = LocalDate.now().getYear();
+        }
+
+        List<Object[]> results = orderRepository.findMonthlyRevenue(year);
+        List<ResMonthlyRevenueDTO> monthlyData = new ArrayList<>();
+
+        // Initialize all 12 months with 0 revenue
+        for (int month = 1; month <= 12; month++) {
+            String monthStr = String.format("%d-%02d", year, month);
+            monthlyData.add(new ResMonthlyRevenueDTO(monthStr, BigDecimal.ZERO));
+        }
+
+        // Map results to corresponding months
+        Map<String, BigDecimal> revenueMap = results.stream()
+                .collect(Collectors.toMap(
+                        result -> (String) result[0],
+                        result -> (BigDecimal) result[1]));
+
+        // Update months with actual revenue
+        for (ResMonthlyRevenueDTO data : monthlyData) {
+            if (revenueMap.containsKey(data.getMonth())) {
+                data.setRevenue(revenueMap.get(data.getMonth()));
+            }
+        }
+
+        return monthlyData;
+    }
+
+    @Override
+    public ResStatusOrderAnalyticsDTO getStatusOrderAnalytics() throws Exception {
+        List<Object[]> results = orderRepository.countOrderByStatus();
+        Map<String, Long> resultMap = results.stream()
+                .collect(Collectors.toMap(
+                        result -> ((OrderStatus) result[0]).toString(),
+                        result -> (Long) result[1]));
+        ResStatusOrderAnalyticsDTO res = new ResStatusOrderAnalyticsDTO();
+        res.setDelivered(resultMap.getOrDefault(OrderStatus.DELIVERED.toString(), 0L).intValue());
+        res.setProcessing(resultMap.getOrDefault(OrderStatus.PROCESSING.toString(), 0L).intValue());
+        res.setPending(resultMap.getOrDefault(OrderStatus.PENDING.toString(), 0L).intValue());
+        res.setCancelled(resultMap.getOrDefault(OrderStatus.CANCELLED.toString(), 0L).intValue());
+        res.setPaid(resultMap.getOrDefault(OrderStatus.PAID.toString(), 0L).intValue());
+        res.setShipping(resultMap.getOrDefault(OrderStatus.SHIPPING.toString(), 0L).intValue());
+        return res;
     }
 
 }

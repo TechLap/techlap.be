@@ -6,6 +6,7 @@ import org.springframework.mail.SimpleMailMessage;
 
 import com.example.techlap.domain.User;
 import com.example.techlap.domain.Customer;
+import com.example.techlap.domain.Order;
 import com.example.techlap.domain.respond.GenericResponse;
 import com.example.techlap.domain.request.ReqPasswordTokenDTO;
 
@@ -19,13 +20,14 @@ public interface EmailService {
 
     void send(SimpleMailMessage email);
 
+    void sendInvoiceEmail(Order order);
+
     String getAppUrl(HttpServletRequest request);
 
     SimpleMailMessage constructResetTokenEmailUser(String contextPath, Locale locale, String token, User user);
 
     SimpleMailMessage constructResetTokenEmailCustomer(String contextPath, Locale locale, String token,
             Customer customer);
-
     GenericResponse resetUserPassword(HttpServletRequest request,
             String email) throws Exception;
 
