@@ -81,7 +81,7 @@ public class VNPayController {
             paymentTransaction.setStatus(PaymentStatus.SUCCESS);
             paymentTransaction.setResponseCode(vnPayRequest.getVnp_ResponseCode());
             this.paymentTransactionService.update(paymentTransaction);
-            this.orderService.updateOrderStatusByOrderCode(orderCode, OrderStatus.PAID);
+            this.orderService.updateStockAfterPayment(orderCode);
             return ResponseEntity.ok("Payment verified and updated");
         } else {
             paymentTransaction.setStatus(PaymentStatus.FAILED);

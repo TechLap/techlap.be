@@ -11,11 +11,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResDashboardDTO {
-    private long totalCustomer;
-    private long totalProduct;
-    private long totalOrder;
-    private long totalBrand;
-    private long totalOrderPaid;
-    private BigDecimal totalIncome;
+public class ResMonthlyRevenueDTO {
+    private String month;
+    private BigDecimal revenue;
 }

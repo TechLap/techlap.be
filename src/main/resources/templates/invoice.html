@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Hóa đơn TechLap</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ea1e30 0%, #c41e3a 100%);
+            padding: 40px;
+            color: white;
+            position: relative;
+            text-align: center;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(50px, -50px);
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .invoice-title {
+            text-align: center;
+        }
+        
+        .invoice-title h2 {
+            margin: 0 0 15px 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #28a745;
+            background: rgba(255,255,255,0.95);
+            padding: 20px 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: inline-block;
+        }
+        
+        .invoice-date {
+            margin: 0;
+            font-size: 16px;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 4px solid #ea1e30;
+        }
+        
+        .info-section h3 {
+            margin: 0 0 25px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #ea1e30;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 16px;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            min-width: 130px;
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 500;
+            flex: 1;
+            font-size: 15px;
+        }
+        
+        .order-code {
+            color: #ea1e30;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .status-badge {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .email-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .email-link:hover {
+            text-decoration: underline;
+        }
+        
+        .products-section {
+            margin: 50px 0;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .products-section h3 {
+            margin: 0 0 30px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #ea1e30;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .products-table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 18px;
+            text-align: left;
+            color: #495057;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .products-table th:nth-child(2) {
+            text-align: center;
+        }
+        
+        .products-table th:nth-child(3) {
+            text-align: right;
+        }
+        
+        .products-table td {
+            padding: 20px 18px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .products-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .product-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .quantity {
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: #495057;
+        }
+        
+        .price {
+            text-align: right;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, #ea1e30 0%, #c41e3a 100%);
+            padding: 40px;
+            border-radius: 12px;
+            margin: 40px 0;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(234, 30, 48, 0.3);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .total-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            border-top: 1px solid #e9ecef;
+            margin-top: 30px;
+        }
+        
+        .thank-you {
+            font-size: 18px;
+            color: #495057;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ea1e30 0%, #c41e3a 100%);
+            color: white;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+            margin-bottom: 25px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(234, 30, 48, 0.3);
+        }
+        
+        .company-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .company-details strong {
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .company-details a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .company-details a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .invoice-title h2 {
+                font-size: 24px;
+                padding: 15px 30px;
+                margin-bottom: 15px;
+            }
+            
+            .invoice-date {
+                font-size: 14px;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .info-section {
+                padding: 25px;
+            }
+            
+            .products-section {
+                padding: 25px;
+                margin: 30px 0;
+            }
+            
+            .products-table th,
+            .products-table td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+            
+            .total-section {
+                padding: 30px 20px;
+                margin: 30px 0;
+            }
+            
+            .total-amount {
+                font-size: 26px;
+            }
+            
+            .company-info h1 {
+                font-size: 28px;
+            }
+            
+            .invoice-info h2 {
+                font-size: 20px;
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="invoice-title">
+                    <h2>Hóa đơn thanh toán</h2>
+                </div>
+                <div class="invoice-date" th:text="${#dates.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Customer and Order Info Grid -->
+            <div class="info-grid">
+                <!-- Customer Info -->
+                <div class="info-section">
+                    <h3>Thông tin khách hàng</h3>
+                    <div class="info-row">
+                        <div class="info-label">Họ tên:</div>
+                        <div class="info-value" th:text="${order.customer.fullName}"></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">
+                            <a href="#" class="email-link" th:href="'mailto:' + ${order.customer.email}" th:text="${order.customer.email}"></a>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Người nhận:</div>
+                        <div class="info-value" th:text="${order.receiverName}"></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Địa chỉ:</div>
+                        <div class="info-value" th:text="${order.receiverAddress}"></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Số điện thoại:</div>
+                        <div class="info-value" th:text="${order.receiverPhone}"></div>
+                    </div>
+                </div>
+
+                <!-- Order Info -->
+                <div class="info-section">
+                    <h3>Thông tin đơn hàng</h3>
+                    <div class="info-row">
+                        <div class="info-label">Mã đơn hàng:</div>
+                        <div class="info-value order-code" th:text="${order.orderCode}"></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Trạng thái:</div>
+                        <div class="info-value">
+                            <span class="status-badge">Đã thanh toán</span>
+                        </div>
+                    </div>
+                    <div class="info-row" th:if="${order.note != null and !order.note.isEmpty()}">
+                        <div class="info-label">Ghi chú:</div>
+                        <div class="info-value" th:text="${order.note}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div class="products-section">
+                <h3>Chi tiết sản phẩm</h3>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detail : ${order.orderDetails}">
+                            <td>
+                                <div class="product-name" th:text="${detail.product.name}"></div>
+                                <div class="product-desc" th:text="${detail.product.description}"></div>
+                            </td>
+                            <td class="quantity" th:text="${detail.quantity}"></td>
+                            <td class="price" th:text="${#numbers.formatDecimal(detail.price, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Section -->
+            <div class="total-section">
+                <div class="total-amount">
+                    Tổng cộng: <span th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p class="thank-you">
+                    Cảm ơn bạn đã tin tưởng TechLap!.
+                </p>
+                
+                <a href="https://techlap.vn/" target="_blank" class="cta-button">
+                    Truy cập TechLap
+                </a>
+                
+                <div class="company-details">
+                    <strong>TechLap</strong><br>
+                    Email: <a href="mailto:support@techlap.vn">support@techlap.vn</a><br>
+                    Website: <a href="https://techlap.vn" target="_blank">https://techlap.vn</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

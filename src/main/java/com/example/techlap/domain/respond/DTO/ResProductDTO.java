@@ -14,6 +14,7 @@ public class ResProductDTO {
     private BigDecimal price;
     private double discount;
     private long stock;
+    private long sold;
     private String description;
     private String image;
     private ProductStatus status;

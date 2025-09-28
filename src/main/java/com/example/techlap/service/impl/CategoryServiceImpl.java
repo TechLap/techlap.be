@@ -7,6 +7,7 @@ import com.example.techlap.domain.respond.DTO.ResCategoryDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.util.ForeignKeyConstraintHandler;
 import com.example.techlap.repository.CategoryRepository;
 import com.example.techlap.service.CategoryService;
 import com.querydsl.core.BooleanBuilder;
@@ -19,6 +20,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -69,9 +71,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void delete(long id) throws Exception {
         Category category = this.findCategoryByIdOrThrow(id);
-        this.categoryRepository.delete(category);
+        
+        ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
+            () -> this.categoryRepository.delete(category),
+            "danh mục",
+            "sản phẩm"
+        );
     }
 
     @Override

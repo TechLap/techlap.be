@@ -6,6 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.techlap.domain.Brand;
 import com.example.techlap.domain.QBrand;
@@ -13,6 +14,7 @@ import com.example.techlap.domain.criteria.CriteriaFilterBrand;
 import com.example.techlap.domain.respond.DTO.ResBrandDTO;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.util.ForeignKeyConstraintHandler;
 import com.example.techlap.repository.BrandRepository;
 import com.example.techlap.service.BrandService;
 import com.querydsl.core.BooleanBuilder;
@@ -92,9 +94,14 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Transactional
     public void delete(long id) throws Exception {
         Brand brand = this.findBrandByIdOrThrow(id);
-        this.brandRepository.delete(brand);
+
+        ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
+                () -> this.brandRepository.delete(brand),
+                "thương hiệu",
+                "sản phẩm");
     }
 
     @Override
@@ -102,12 +109,12 @@ public class BrandServiceImpl implements BrandService {
         QBrand qBrand = QBrand.brand;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if(criteriaFilterBrand.getName() != null && !criteriaFilterBrand.getName().isEmpty()){
+        if (criteriaFilterBrand.getName() != null && !criteriaFilterBrand.getName().isEmpty()) {
             builder.and(qBrand.name.containsIgnoreCase(criteriaFilterBrand.getName()));
         }
 
         Page<Brand> brandPage = brandRepository.findAll(builder, pageable);
-        ResPaginationDTO res = new  ResPaginationDTO();
+        ResPaginationDTO res = new ResPaginationDTO();
         ResPaginationDTO.Meta meta = new ResPaginationDTO.Meta();
 
         meta.setPage(brandPage.getNumber() + 1);
@@ -122,6 +129,6 @@ public class BrandServiceImpl implements BrandService {
                 .toList();
         res.setResult(listBrands);
         return res;
-        
+
     }
 }

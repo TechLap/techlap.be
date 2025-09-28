@@ -1,6 +1,7 @@
 package com.example.techlap.repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +25,21 @@ public interface OrderRepository extends JpaRepository<Order, Long>, QuerydslPre
 
     Page<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId, Pageable pageable);
 
-    @Query("SELECT coalesce(sum(o.totalPrice), 0) FROM Order o")
+    @Query("SELECT coalesce(sum(o.totalPrice), 0) FROM Order o WHERE o.status = 'PAID'")
     BigDecimal calculateTotalRevenue();
+
+    @Query("SELECT FUNCTION('DATE_FORMAT', o.createdAt, '%Y-%m') as month, " +
+       "SUM(o.totalPrice) as revenue " +
+       "FROM Order o " +
+       "WHERE o.status = 'PAID' " +
+       "AND YEAR(o.createdAt) = :year " +
+       "GROUP BY FUNCTION('DATE_FORMAT', o.createdAt, '%Y-%m') " +
+       "ORDER BY month")
+    List<Object[]> findMonthlyRevenue(int year);
+
+    @Query("SELECT o.status, COUNT(o) FROM Order o GROUP BY o.status")
+    List<Object[]> countOrderByStatus();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'PAID'")
+    long countOrderPaid();
 }

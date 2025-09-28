@@ -53,6 +53,7 @@ public class SecurityConfiguration {
             "/api/v1/customers/reset-password",
             "/api/v1/users/change-password",
             "/api/v1/customers/change-password",
+            "/payment/vnpay-return/**",
     };
 
     @Value("${techlap.jwt.base64-secret}")

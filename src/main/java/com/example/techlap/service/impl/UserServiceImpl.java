@@ -262,7 +262,8 @@ public class UserServiceImpl implements UserService {
         long totalOrder = this.orderRepository.count();
         long totalProduct = this.productRepository.count();
         long totalBrand = this.brandRepository.count();
-        ResDashboardDTO dashboardDTO = new ResDashboardDTO(totalCustomer, totalProduct, totalOrder, totalBrand, totalIncome);
+        long totalOrderPaid = this.orderRepository.countOrderPaid();
+        ResDashboardDTO dashboardDTO = new ResDashboardDTO(totalCustomer, totalProduct, totalOrder, totalBrand, totalOrderPaid, totalIncome);
         return dashboardDTO;
     }
 

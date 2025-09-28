@@ -13,6 +13,7 @@ import com.example.techlap.exception.IdInvalidException;
 import com.example.techlap.domain.request.ReqChangePasswordDTO;
 import com.example.techlap.exception.ResourceAlreadyExistsException;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.util.ForeignKeyConstraintHandler;
 import com.example.techlap.repository.*;
 import com.example.techlap.service.CustomerService;
 import com.example.techlap.util.SecurityUtil;
@@ -132,9 +133,15 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
     public void delete(long id) throws Exception {
         Customer customer = this.findCustomerByIdOrThrow(id);
-        this.customerRepository.delete(customer);
+        
+        ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
+            () -> this.customerRepository.delete(customer),
+            "khách hàng",
+            "đơn hàng"
+        );
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.techlap.service.impl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.techlap.config.ModelMapperConfig;
 import com.example.techlap.domain.Brand;
@@ -14,6 +15,7 @@ import com.example.techlap.domain.enums.ProductStatus;
 import com.example.techlap.domain.respond.DTO.ResPaginationDTO;
 import com.example.techlap.domain.respond.DTO.ResProductDTO;
 import com.example.techlap.exception.ResourceNotFoundException;
+import com.example.techlap.util.ForeignKeyConstraintHandler;
 import com.example.techlap.repository.ProductRepository;
 import com.example.techlap.service.BrandService;
 import com.example.techlap.service.CategoryService;
@@ -69,6 +71,8 @@ public class ProductServiceImpl implements ProductService {
             Category category = this.categoryService.fetchCategoryById(product.getCategory().getId());
             product.setCategory(category != null ? category : null);
         }
+
+        product.setSold(0);
         return productRepository.save(product);
     }
 
@@ -123,9 +127,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void delete(long id) throws Exception {
         Product product = this.findProductByIdOrThrow(id);
-        this.productRepository.delete(product);
+        
+        ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
+            () -> this.productRepository.delete(product),
+            "sản phẩm",
+            "đơn hàng"
+        );
     }
 
     @Override
