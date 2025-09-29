@@ -119,7 +119,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     public String getFrontendUrl() {
-        return "https://app.techlap.me";
+        return "http://localhost:3000";
     }
 
     @Override
@@ -131,8 +131,11 @@ public class EmailServiceImpl implements EmailService {
         }
         String token = UUID.randomUUID().toString();
         createPasswordResetTokenForUser(user, token);
-        send(constructResetTokenEmailUser(getFrontendUrl(),
-                request.getLocale(), token, user));
+
+        // build reset url and send HTML email using Thymeleaf template
+        String resetUrl = getFrontendUrl() + "/admin/reset-password?token=" + token;
+        sendResetPasswordHtmlEmail(user.getEmail(), user.getFullName(), resetUrl);
+
         return new GenericResponse(
                 messages.getMessage("message.resetPasswordEmail", null,
                         request.getLocale()));
@@ -163,8 +166,11 @@ public class EmailServiceImpl implements EmailService {
         }
         String token = UUID.randomUUID().toString();
         createPasswordResetTokenForCustomer(customer, token);
-        send(constructResetTokenEmailCustomer(getFrontendUrl(),
-                request.getLocale(), token, customer));
+
+        // build reset url and send HTML email using Thymeleaf template
+        String resetUrl = getFrontendUrl() + "/reset-password?token=" + token;
+        sendResetPasswordHtmlEmail(customer.getEmail(), customer.getFullName(), resetUrl);
+
         return new GenericResponse(
                 messages.getMessage("message.resetPasswordEmail", null,
                         request.getLocale()));
@@ -209,6 +215,32 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             System.err.println("❌ Failed to send invoice email: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    // helper: send reset-password.html (Thymeleaf)
+    private void sendResetPasswordHtmlEmail(String to, String name, String resetUrl) {
+        try {
+            MimeMessagePreparator messagePreparator = mimeMessage -> {
+                MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+                messageHelper.setTo(to);
+                messageHelper.setFrom(env.getProperty("spring.mail.username"));
+                messageHelper.setSubject("Yêu cầu đặt lại mật khẩu - TechLap");
+
+                Context context = new Context();
+                context.setVariable("name", name);
+                context.setVariable("resetUrl", resetUrl);
+
+                String htmlContent = templateEngine.process("reset-password", context);
+                messageHelper.setText(htmlContent, true);
+            };
+
+            mailSender.send(messagePreparator);
+            System.out.println("✅ Reset password email sent to: " + to);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send reset password email: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send reset password email", e);
         }
     }
 
