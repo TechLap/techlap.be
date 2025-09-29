@@ -136,12 +136,11 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void delete(long id) throws Exception {
         Customer customer = this.findCustomerByIdOrThrow(id);
-        
+
         ForeignKeyConstraintHandler.handleDeleteWithForeignKeyCheck(
-            () -> this.customerRepository.delete(customer),
-            "khách hàng",
-            "đơn hàng"
-        );
+                () -> this.customerRepository.delete(customer),
+                "khách hàng",
+                "đơn hàng");
     }
 
     @Override
@@ -254,7 +253,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         // Kiem tra product co nam trong cart chua
         CartDetail cartDetail = cartDetailRepository.findByCartAndProduct(cart, product);
-
+        long newQuantity = reqAddToCartDTO.getQuantity();
         if (cartDetail == null) {
             // Nếu chưa có thì chỉ cho phép thêm mới (isUpdate = false)
             if (reqAddToCartDTO.isUpdate()) {
@@ -267,11 +266,18 @@ public class CustomerServiceImpl implements CustomerService {
         } else {
             // Nếu đã có
             if (reqAddToCartDTO.isUpdate()) {
-                cartDetail.setQuantity(reqAddToCartDTO.getQuantity()); // Set trực tiếp
+                newQuantity = reqAddToCartDTO.getQuantity(); // Set trực tiếp
             } else {
-                cartDetail.setQuantity(cartDetail.getQuantity() + reqAddToCartDTO.getQuantity()); // Cộng thêm
+                newQuantity = cartDetail.getQuantity() + reqAddToCartDTO.getQuantity(); // Cộng thêm
             }
         }
+
+        // ✅ Kiểm tra stock
+        if (newQuantity > product.getStock()) {
+            throw new Exception("So luong vuot qua ton kho. Chi con " + product.getStock() + " san pham.");
+        }
+
+        cartDetail.setQuantity(newQuantity);
 
         // Tính đơn giá sau giảm
         BigDecimal price = product.getPrice();
@@ -388,14 +394,16 @@ public class CustomerServiceImpl implements CustomerService {
     private ResOrderDTO convertToResOrderDTO(Order order) {
         ResOrderDTO dto = new ResOrderDTO();
         dto.setId(order.getId());
-        dto.setOrderCode(order.getOrderCode());;
+        dto.setOrderCode(order.getOrderCode());
+        ;
         dto.setReceiverName(order.getReceiverName());
         dto.setReceiverAddress(order.getReceiverAddress());
         dto.setShipping(order.getShipping());
         dto.setReceiverPhone(order.getReceiverPhone());
         dto.setNote(order.getNote());
         dto.setStatus(order.getStatus());
-        dto.setPaymentMethod(order.getPaymentTransaction() != null ? order.getPaymentTransaction().getPaymentMethod() : "cod");
+        dto.setPaymentMethod(
+                order.getPaymentTransaction() != null ? order.getPaymentTransaction().getPaymentMethod() : "cod");
         dto.setCreatedAt(order.getCreatedAt());
         dto.setTotalPrice(order.getTotalPrice());
 
