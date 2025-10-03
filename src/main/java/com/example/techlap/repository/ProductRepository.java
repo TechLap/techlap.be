@@ -19,7 +19,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Queryds
     @Query(value = "SELECT p.* " +
             "FROM products p " +
             "LEFT JOIN order_details od ON p.id = od.product_id " +
+            "LEFT JOIN orders o ON od.order_id = o.id " +
             "WHERE p.status = 'ACTIVE' " +
+            "AND o.status = 'PAID' " +
             "GROUP BY p.id " +
             "ORDER BY SUM(od.quantity) DESC " +
             "LIMIT 5", nativeQuery = true)
