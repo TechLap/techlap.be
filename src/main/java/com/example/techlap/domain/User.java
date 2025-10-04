@@ -13,6 +13,7 @@ import lombok.Setter;
 import java.time.Instant;
 
 import com.example.techlap.util.SecurityUtil;
+import com.example.techlap.util.SensitiveDataAttributeConverter;
 
 @Entity
 @Getter
@@ -35,9 +36,11 @@ public class User {
     @NotBlank(message = "Name isn't blank")
     private String fullName;
 
+    @Convert(converter = SensitiveDataAttributeConverter.class)
     @NotBlank(message = "Address isn't blank")
     private String address;
 
+    @Convert(converter = SensitiveDataAttributeConverter.class)
     @Pattern(regexp = "^(0[0-9]{9})$", message = "Invalid phone number")
     private String phone;
 

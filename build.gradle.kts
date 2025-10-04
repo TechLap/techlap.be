@@ -45,6 +45,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-web-services")
+	implementation("io.vavr:vavr:0.10.4")
+	// https://mvnrepository.com/artifact/org.springframework/spring-context
+// https://mvnrepository.com/artifact/org.springframework/spring-context
+	implementation("org.springframework:spring-context:6.2.11")
 	// https://mvnrepository.com/artifact/org.thymeleaf.extras/thymeleaf-extras-springsecurity6
 	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.3.RELEASE")
 	compileOnly("org.projectlombok:lombok")

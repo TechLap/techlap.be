@@ -1,5 +1,6 @@
 package com.example.techlap.domain;
 
+import com.example.techlap.util.SensitiveDataAttributeConverter;
 import com.example.techlap.util.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -34,6 +35,7 @@ public class Customer {
     @NotBlank(message = "fullName isn't blank")
     private String fullName;
 
+    @Convert(converter = SensitiveDataAttributeConverter.class)
     @NotBlank(message = "Address isn't blank")
     private String address;
 
@@ -41,6 +43,7 @@ public class Customer {
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @Convert(converter = SensitiveDataAttributeConverter.class)
     @Pattern(regexp = "^(0[0-9]{9})$", message = "Invalid phone number")
     private String phone;
     private Long totalOrders;
