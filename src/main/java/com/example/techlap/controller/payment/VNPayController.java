@@ -54,9 +54,6 @@ public class VNPayController {
 
     @PostMapping("/payment/vnpay-verify")
     public ResponseEntity<String> verifyReturn(@RequestBody Map<String, String> params) throws Exception {
-        System.out.println("=== VNPAY VERIFY (RETURN) DEBUG ===");
-        System.out.println("Received params: " + params);
-
         VNPayRequest vnPayRequest = VNPayUtil.convertToVNPayRequest(params);
         if (vnPayRequest == null) {
             return ResponseEntity.badRequest().body("Invalid params");
