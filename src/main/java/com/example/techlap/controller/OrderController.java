@@ -60,7 +60,8 @@ public class OrderController {
     }
 
     @GetMapping("/orders/monthly-revenue")
-    public ResponseEntity<List<ResMonthlyRevenueDTO>> getMonthlyRevenue(@RequestParam(required = false) Integer year)
+    public ResponseEntity<List<ResMonthlyRevenueDTO>> getMonthlyRevenue(
+            @RequestParam(value = "year", required = false) Integer year)
             throws Exception {
         return ResponseEntity.ok(this.orderService.getMonthlyRevenue(year));
     }
