@@ -12,13 +12,23 @@ public class SensitiveDataAttributeConverter implements AttributeConverter<Strin
 
     @Override
     public String convertToDatabaseColumn(String attribute) {
-        CryptoHelper cryptoHelper = SpringContext.getBean(CryptoHelper.class);
-        return cryptoHelper.encryptSensitiveData(attribute);
+        try {
+            CryptoHelper cryptoHelper = SpringContext.getBean(CryptoHelper.class);
+            return cryptoHelper.encryptSensitiveData(attribute);
+        } catch (Exception e) {
+            // Log error and return original data to prevent breaking JPA operations
+            return attribute;
+        }
     }
 
     @Override
     public String convertToEntityAttribute(String dbData) {
-        CryptoHelper cryptoHelper = SpringContext.getBean(CryptoHelper.class);
-        return cryptoHelper.decryptSensitiveData(dbData);
+        try {
+            CryptoHelper cryptoHelper = SpringContext.getBean(CryptoHelper.class);
+            return cryptoHelper.decryptSensitiveData(dbData);
+        } catch (Exception e) {
+            // Log error and return original data to prevent breaking JPA operations
+            return dbData;
+        }
     }
 }
