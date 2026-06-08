@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.techlap.domain.enums.OrderStatus;
-import com.example.techlap.util.SensitiveDataAttributeConverter;
 import com.example.techlap.util.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -29,16 +28,12 @@ public class Order {
     private String orderCode;
     private BigDecimal totalPrice;
 
-    @Convert(converter = SensitiveDataAttributeConverter.class)
     private String receiverName;
-    @Convert(converter = SensitiveDataAttributeConverter.class)
     private String receiverAddress;
-    @Convert(converter = SensitiveDataAttributeConverter.class)
     private String receiverPhone;
     private BigDecimal shipping;
 
     @Column(columnDefinition = "MEDIUMTEXT")
-    @Convert(converter = SensitiveDataAttributeConverter.class)
     private String note;
 
     @Enumerated(EnumType.STRING)
