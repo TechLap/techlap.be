@@ -122,7 +122,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         if (countUsers == 0) {
             User adminUser = new User();
-            adminUser.setEmail("thiendz@gmail.com");
+            adminUser.setEmail("admin@gmail.com");
             adminUser.setAddress("Hồ Chí Minh");
             adminUser.setFullName("I'm super admin");
             adminUser.setPassword(this.passwordEncoder.encode("210704Thien@"));
