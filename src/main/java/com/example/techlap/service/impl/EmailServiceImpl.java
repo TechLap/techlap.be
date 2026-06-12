@@ -119,7 +119,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     public String getFrontendUrl() {
-        return "https://localhost:3000";
+        return "http://localhost:3000";
     }
 
     @Override
