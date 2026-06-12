@@ -119,7 +119,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     public String getFrontendUrl() {
-        return "https://app.techlap.me";
+        return "https://localhost:3000";
     }
 
     @Override
